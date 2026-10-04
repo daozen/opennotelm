@@ -1,0 +1,38 @@
+# Override for disposable acceptance data. The production image is unchanged.
+# Use with compose.yaml; see docs/DOCKER_ACCEPTANCE.md.
+services:
+  init-data:
+    volumes:
+      - ${OPENNOTELM_DATA_DIR:?Run tools/docker_acceptance.sh to set isolated data}:/app/data
+  app:
+    volumes:
+      - ${OPENNOTELM_DATA_DIR:?Run tools/docker_acceptance.sh to set isolated data}:/app/data
+    environment:
+      TELEMETRY_HOST: http://127.0.0.1:4301
+      TELEMETRY_PROJECT_TOKEN: test-only-telemetry-token
+  provider:
+    image: opennotelm:local
+    # The fixture is reachable only on the app container's loopback interface.
+    network_mode: service:app
+    volumes:
+      - ./backend/tests:/fixtures:ro
+    command:
+      - /app/.venv/bin/uvicorn
+      - mock_provider:app
+      - --app-dir
+      - /fixtures
+      - --host
+      - 127.0.0.1
+      - --port
+      - "4301"
+      - --no-access-log
+    healthcheck:
+      test:
+        - CMD
+        - /app/.venv/bin/python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4301/v1/models')"
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s

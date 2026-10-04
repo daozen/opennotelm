@@ -1,0 +1,46 @@
+services:
+  init-data:
+    image: ${OPENNOTELM_IMAGE:-opennotelm:local}
+    user: "0:0"
+    cap_drop: [ALL]
+    cap_add: [CHOWN]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - ${OPENNOTELM_DATA_DIR:-./data}:/app/data
+    command: ["/app/.venv/bin/python", "-c", "import os; os.chown('/app/data', 10001, 10001)"]
+    restart: "no"
+  app:
+    image: ${OPENNOTELM_IMAGE:-opennotelm:local}
+    build: .
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      init-data:
+        condition: service_completed_successfully
+    ports:
+      - "${OPENNOTELM_BIND_ADDRESS:-127.0.0.1}:${OPENNOTELM_PORT:-3000}:3000"
+    volumes:
+      - ${OPENNOTELM_DATA_DIR:-./data}:/app/data
+    environment:
+      DATA_DIR: /app/data
+      TASK_CONCURRENCY: ${TASK_CONCURRENCY:-3}
+      MODEL_REQUEST_CONCURRENCY: ${MODEL_REQUEST_CONCURRENCY:-8}
+      IMAGE_GENERATION_CONCURRENCY: ${IMAGE_GENERATION_CONCURRENCY:-2}
+      IMAGE_RECOGNITION_CONCURRENCY: ${IMAGE_RECOGNITION_CONCURRENCY:-4}
+      CONTENT_GENERATION_CONCURRENCY: ${CONTENT_GENERATION_CONCURRENCY:-2}
+      MAX_WEB_BYTES: ${MAX_WEB_BYTES:-10485760}
+      WEB_FETCH_TIMEOUT: ${WEB_FETCH_TIMEOUT:-30}
+      WEB_FAKE_IP_DNS_FALLBACK: ${WEB_FAKE_IP_DNS_FALLBACK:-1}
+      MAX_WEB_IMAGES: ${MAX_WEB_IMAGES:-50}
+      MAX_WEB_IMAGE_BYTES: ${MAX_WEB_IMAGE_BYTES:-10485760}
+      MAX_WEB_IMAGES_BYTES: ${MAX_WEB_IMAGES_BYTES:-104857600}
+      WEB_IMAGE_DOWNLOAD_CONCURRENCY: ${WEB_IMAGE_DOWNLOAD_CONCURRENCY:-4}
+      WEB_IMAGE_TIMEOUT: ${WEB_IMAGE_TIMEOUT:-20}
+      WEB_IMAGES_TIMEOUT: ${WEB_IMAGES_TIMEOUT:-120}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,[::1]}
+      OPENNOTELM_LANGUAGE_API_KEY: ${OPENNOTELM_LANGUAGE_API_KEY:-}
+      OPENNOTELM_EMBEDDING_API_KEY: ${OPENNOTELM_EMBEDDING_API_KEY:-}
+      OPENNOTELM_IMAGE_API_KEY: ${OPENNOTELM_IMAGE_API_KEY:-}
+      TELEMETRY_HOST: ${TELEMETRY_HOST:-https://us.i.posthog.com}
+      TELEMETRY_PROJECT_TOKEN: ${TELEMETRY_PROJECT_TOKEN:-}
+    restart: unless-stopped
