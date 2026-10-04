@@ -2589,3 +2589,14 @@ private development ancestors remain local.
 - This scanner-only correction and documentation require hosted follow-up. No live
   service/data or product behavior was changed. Account login/settings, final
   release assets/tag/image digest and actual Beta publication remain pending.
+
+
+- Follow-up run **37239383611** release-contract job passed: exact checksum
+  exception/rejection self-checks, full public history/tree secret scanning, DCO
+  and Python dependency audit. Other jobs were still running when recorded.
+- Actual asset construction discovered detached `acl.orig.tar.xz.asc` was treated
+  as an archive by the new Debian-notice extractor. Corrected suffix detection:
+  signatures/descriptors remain checksum-verified original attachments, only actual
+  tar archives are opened. Complete LGPL/copyright extraction and corrupt-archive
+  rejection are retained. **16 release-tool regressions passed**, including three
+  new signature/complete-notice/corruption cases; Ruff check/format passed.
