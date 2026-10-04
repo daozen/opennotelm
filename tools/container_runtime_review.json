@@ -1,0 +1,338 @@
+{
+  "reviewed": "2026-10-04",
+  "expires": "2026-11-04",
+  "scope": "Default non-root Debian 13 server image and Compose settings only; no privileged/root runtime, extra devices, displays, source mounts or customized renderers. Not a vendor package fix or a general OS security claim.",
+  "runtime_sources": {
+    "backend/opennotelm/__init__.py": "c2728d0f117e1e42718017f201516265fab2f225bbe1996ce7383d8720bf33a7",
+    "backend/opennotelm/artifact_downloads.py": "354e4115672dd31fb70e577dbb1e1be6628d539a4ef7c46990ae46c50073f201",
+    "backend/opennotelm/assets.py": "bce9bf0746ff4262b55fc328f66211f73c28e8ae809fc74a05740b23271a4e80",
+    "backend/opennotelm/browser_environment.py": "8ef8dd7e96b5976a59ae7d1c3ab34378ae7969e610224b6bf43f7c5e27cca21a",
+    "backend/opennotelm/chat.py": "29fd016069fa9be748b3c50bb523d5d3a1c14e766e590de526270b5db09ac783",
+    "backend/opennotelm/chat_routes.py": "2d458a636907862217694326a50cd1771d4ae8311f719c6ce94c1eabf486d367",
+    "backend/opennotelm/chunking.py": "31c5bb0240471deea9418d58c1a0fe99ee981bb90799b5628f77dea56344bc91",
+    "backend/opennotelm/citations.py": "e241110ce7d99b9026440d23e0be1034d8aeca8c9e2ad82ac301bfd9db6a2e67",
+    "backend/opennotelm/composition.py": "c4a5d2bc1ba58d33adfd83999c2f585b156f7be5b5c0080fab091038e2a28820",
+    "backend/opennotelm/concurrency.py": "ca3887d73a856bea550b825e87ee0796293b3b88bc57ed63182645a68bd73388",
+    "backend/opennotelm/config.py": "7a55adbb28eeb60c243d9a99d8403d40dbc17380b53c43dac679934e12d8a913",
+    "backend/opennotelm/content_generation_settings.py": "71697686bb769bd0d4c8e9df3e1ccd7c72b381be722f950e1a102a20a8a024c8",
+    "backend/opennotelm/db.py": "dfc7c5e336810851b762637081b9948601fccf0f7bd536c494cf021a682b9b8f",
+    "backend/opennotelm/deck_art.py": "5ee90a622ff7385ddeb49f24379dc62348a3baa8560a6827232ad7df529e8168",
+    "backend/opennotelm/deck_content.py": "c902bba1f49007405a5ee260b509a2d88fb64cc3fc18c60638c1d7665c7c9694",
+    "backend/opennotelm/deck_context.py": "5dd858c365fda0733cb818439045f978f6d488b15fa66120a5d9446f8ecbc05e",
+    "backend/opennotelm/deck_diagnostics.py": "11feb255b8b5cd31adb317ecd396f81705be8898681363ff2f9af4ba9936a66f",
+    "backend/opennotelm/deck_routes.py": "514b7f927822374f1cf3b5651e40f2af2dbbc76be796bbba2acb3c86992c48f8",
+    "backend/opennotelm/deck_schemas.py": "e1c06f6b813b4a5498769a5b227122128824b9b5a635faf541cdfbeb8dbcf787",
+    "backend/opennotelm/deck_sources.py": "e1f4e2abcad83d023e08f9f31f30dacb86680674e751a35d8bbac041a7ac0a09",
+    "backend/opennotelm/deck_style.py": "68e13507d63df2d6e304fd963c91bccd798b71f71c27d53ea0f6fb162f5cfa5e",
+    "backend/opennotelm/deck_validation.py": "93cbf4ac5b1f1cf736840ac9fa69728a7341576dcd62511a2d532080d129a374",
+    "backend/opennotelm/decks.py": "97e1e9b0cea23bc010c31e5a3ec18147fc398ce17feecb7b52b7119cf0cd3ee1",
+    "backend/opennotelm/diagnostics.py": "b49367812d1744832f865cefde02fa158eadbee7b914a638a6e4df4fb1d07c92",
+    "backend/opennotelm/documents.py": "082d0571ff254b72c63a255df69c111dafa452e65c3785af5f547270d7c759b0",
+    "backend/opennotelm/docx_parser.py": "cb2e185dfed3faf334980c58e2510763f7ab0faf5b488c21514d05b423797f49",
+    "backend/opennotelm/embedding_identity.py": "d66a23280075d8e52cb38069c064e7fcfa79fa6c77a3df4229b220ee09feae4b",
+    "backend/opennotelm/epub.py": "70d733cf7d712bb40eabf8487e591b8fe96da113819fb2742c02888d3e64692a",
+    "backend/opennotelm/error_codes.py": "1626c7feb16ce847f3b5b297048da9ddf39452bd33783643fa18c2ea4106ed2f",
+    "backend/opennotelm/errors.py": "92e956684d2cdcdc0fc86f02bcac2a66bbc4da47397a47502b7c6b592ff5bddc",
+    "backend/opennotelm/gateway.py": "0a8d3a101e9de338427c1f4bcdd57a8efc2e66854b673e6f3cd2fcde38aeb25e",
+    "backend/opennotelm/generated_pages.py": "d83c9ef1de3c7a00175b87ad48c8034140d033db79b59d59e3a5bbbb6ea2ed66",
+    "backend/opennotelm/generation_attempts.py": "61c323da32fb0cb75a0f0c108105f78172e85f5265987db4455d9f71533b826d",
+    "backend/opennotelm/icons.py": "99ca0ac179938066e158be6f2e70b9f598735574e5cb3886bef96501aa8bfac9",
+    "backend/opennotelm/image_adapter.py": "52dfa2bf4a313cf0df1d0315b5599e2b6f9471c5d641284cf54e3fc9c5d0906f",
+    "backend/opennotelm/image_generation_settings.py": "3f9dbd9635e4785577d3ea24286ea184f679050328ce3d3c603855603d7758ea",
+    "backend/opennotelm/image_recognition_settings.py": "16b4e5f21d7b2d18a122c998405144891715577cda9303aefa3613d374d4a9ad",
+    "backend/opennotelm/index_rebuild.py": "8b9fc2fed446cddfcd10461bbe55189dcab8fa450fc11180fbfd9f36d47a509f",
+    "backend/opennotelm/instance.py": "8f4359ab09aa09bd9a67c4175042eb9c191766b63c10b6173ea7ed64a82bf48c",
+    "backend/opennotelm/job_events.py": "8bf9a86bd861b8d07158a5d1bd662ee65bf8df21a24befd5abbc768bd48f8ba7",
+    "backend/opennotelm/jobs.py": "06a7bb4cd199b4e4ec9fdd71e48ae7eec0d9a287a5f00ed9c6013311ba176240",
+    "backend/opennotelm/knowledge.py": "184b82e4a29efe70c386a99f56336b5d00c380ade7ede09735eef0d1cda497b2",
+    "backend/opennotelm/knowledge_routes.py": "584117d7e92be31a07a06956590d1c9b01e4cbd99b1b6c41ae9753e39bba227b",
+    "backend/opennotelm/languages.py": "ba59ffd06089a85dc40e4b41d74cdb54a2911c555a2d090996b325ad8d13ad92",
+    "backend/opennotelm/main.py": "e71af827f65f01673657e6bb8df1d2964346390e49d767116eb97ba7166bbc55",
+    "backend/opennotelm/maintenance.py": "601636098a64ff4ed2dd30f116c3a12adf6e574e01a7c87044dc995fed371b07",
+    "backend/opennotelm/model_service.py": "a08057955e4b248d065e6810fd1db5a7b43958c53088edcaef833848f5a86be9",
+    "backend/opennotelm/notebooks.py": "551844196d701375d53a2668333fc95ce90a8ce9881d9221b738b352a880f0c0",
+    "backend/opennotelm/output_repair.py": "cf66c931582d474128269a1f1ad2a3343bd6270d7f380e2018417a4d55d5af29",
+    "backend/opennotelm/page_design.py": "18690d15c9a6a9ee7114f67aca04709e0f48b65d0444986d4114006c66274ff2",
+    "backend/opennotelm/passages.py": "3808333bab585e769126e59783fd32bbba46a99d405280ede542bff474c6f3b6",
+    "backend/opennotelm/pdf_export.py": "951b3ed284bde833cd92129cc633122b1cb74d731f6a07b25f484755bb1ca54e",
+    "backend/opennotelm/pdf_images.py": "3bbf98e1c315c97e3dc7d29fc2fd3cddc2a4c87fdce5b20e1db2a4cb114069f3",
+    "backend/opennotelm/pdf_parser.py": "e418e79f5d9f7aa28d2cdc1cf160b51dac1b19385a300edda64bf0aa421a037f",
+    "backend/opennotelm/pdf_text.py": "851fedc50a70187d8fa240d666961713a5c1504e405041a9bb8932dfc9e575cd",
+    "backend/opennotelm/reading.py": "c241aef5f233e50ab70144fd60541773c4098b401ad9a5ade54a1966fab6e5a9",
+    "backend/opennotelm/render_routes.py": "8f52c0885ead2d45d1a411ac4fd63aaa344c67d5b677403758706466dd813f7b",
+    "backend/opennotelm/render_schemas.py": "2f023d6d231d297720dd10b8f866d392545b8deb2532d7f5752febbb37cfba8c",
+    "backend/opennotelm/renderer.py": "85e6c0b805363b501fbe7a8caf0141502c5f2bb9f9fda539d1ea8641ae953668",
+    "backend/opennotelm/request_limits.py": "fe7b495dd84a789061fb71bf7075e4d92b236d1821f9cb5cc9c74bc3bfd83a5c",
+    "backend/opennotelm/retrieval.py": "92d2e70ab9197b3afde0fe4a0e3520c7ff196989d7388182affd4923538428e2",
+    "backend/opennotelm/revision_schemas.py": "b10c3e447df1921813db592c7283440de820209bffa5f38a30f16435d2ffe85e",
+    "backend/opennotelm/revisions.py": "3b05fb96ace74def33e978716c1e36992933f3efd2025fa63088c72b7e3bf3c4",
+    "backend/opennotelm/schemas.py": "ea271bf47c3bd8951701d6410f0c0c9cff3b68aede9c315cd69e65e20addc468",
+    "backend/opennotelm/secrets.py": "962b84be79ecc7446c5fe04216bb6621fdf90f7b070c46b62e66ebfc0cced6ed",
+    "backend/opennotelm/source_routes.py": "1cc08cf499822a15f3d9daf4f0fdf404177e698c6c79b35280ce3c30749a916f",
+    "backend/opennotelm/source_service.py": "27ae0e17dacdd80ca416256621da79f4f004503e08a514fdb67b6d53011dd881",
+    "backend/opennotelm/source_vision.py": "de21e318470849f9908fdd13f603679d5cb853520a4f9ce99d715c2a1b6f76c2",
+    "backend/opennotelm/source_visuals.py": "b4df23fcc580f7bba836895a0ed7b2e463a167ede0006c78ff5f157e7f655cc8",
+    "backend/opennotelm/structured.py": "c73ddd4185021da28be058148e65e6f31d290b3b90783a4583b30649f84ea7d8",
+    "backend/opennotelm/synthesis.py": "8e95277d978b34b4c92ace721f78b7e03bf8686fb017982a70217f381bad8836",
+    "backend/opennotelm/task_settings.py": "ed34d734d508a3b075c01f3973a16856850d262e9971430f288541fe6c53be00",
+    "backend/opennotelm/telemetry.py": "213ad28f83aea3df0c7156caf425f4fb97c8a15d7e1ba789e424f4f5024634fb",
+    "backend/opennotelm/text_parsers.py": "33f05b7f10f6cd27e6a83071f27d09d1ad7f10f3b7a626993dda651390e2dffe",
+    "backend/opennotelm/transformation_routes.py": "92926c30c1be11f459f6835787fe16004e00605d20bd633c846935524eeda5bc",
+    "backend/opennotelm/transformations.py": "730c4de3db8873f6f5779503a9bfadc89c07ef55d51094056d8263e685835b51",
+    "backend/opennotelm/visual_reading_cache.py": "53b5fcb3c6564cda9917f8ab4df7c59edcac0725e71fc513a9bdd082c100dd67",
+    "backend/opennotelm/web_fetch.py": "0cb25e51b9f6035d502b430217cd546eb9e8e0fc00f303e887ea87e5b2e5bb32",
+    "backend/opennotelm/web_images.py": "5526c4817d6061f5b2b603d859f79ae085b4108eae511dfa6a26db09cfbc3cf2",
+    "backend/opennotelm/web_parser.py": "6b7ab758517319b9ae4379e23d1c2cf1e8056a08176325845bbd02ced5c2c2e4",
+    "pyproject.toml": "a763a094eb58bd30531c8fb123c63b78fd076b58a9ba3e789a4ba1b43d3ecfed",
+    "uv.lock": "a491974c1be1068ecf494ce310073a0d7941ebb2bcd75429c5d00686e249e313"
+  },
+  "advisories": {
+    "CVE-2026-76642": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence",
+        "nonprivileged"
+      ],
+      "reason": "Affected mount/nsenter entry points are removed; the application has UID 10001, zero capabilities and no-new-privileges, no fstab mount authorization and no privileged mount/namespace caller. The initializer only chowns the data-directory inode.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-76642",
+      "packages": {
+        "bsdutils": "1:2.41.5-0+deb13u1",
+        "libblkid1": "2.41.5-0+deb13u1",
+        "liblastlog2-2": "2.41.5-0+deb13u1",
+        "libmount1": "2.41.5-0+deb13u1",
+        "libsmartcols1": "2.41.5-0+deb13u1",
+        "libuuid1": "2.41.5-0+deb13u1",
+        "login": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "mount": "2.41.5-0+deb13u1",
+        "util-linux": "2.41.5-0+deb13u1"
+      }
+    },
+    "CVE-2026-78408": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence",
+        "nonprivileged"
+      ],
+      "reason": "Affected mount/nsenter entry points are removed; the application has UID 10001, zero capabilities and no-new-privileges, no fstab mount authorization and no privileged mount/namespace caller. The initializer only chowns the data-directory inode.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-78408",
+      "packages": {
+        "bsdutils": "1:2.41.5-0+deb13u1",
+        "libblkid1": "2.41.5-0+deb13u1",
+        "liblastlog2-2": "2.41.5-0+deb13u1",
+        "libmount1": "2.41.5-0+deb13u1",
+        "libsmartcols1": "2.41.5-0+deb13u1",
+        "libuuid1": "2.41.5-0+deb13u1",
+        "login": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "mount": "2.41.5-0+deb13u1",
+        "util-linux": "2.41.5-0+deb13u1"
+      }
+    },
+    "CVE-2026-78409": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence",
+        "nonprivileged"
+      ],
+      "reason": "Affected mount/nsenter entry points are removed; the application has UID 10001, zero capabilities and no-new-privileges, no fstab mount authorization and no privileged mount/namespace caller. The initializer only chowns the data-directory inode.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-78409",
+      "packages": {
+        "bsdutils": "1:2.41.5-0+deb13u1",
+        "libblkid1": "2.41.5-0+deb13u1",
+        "liblastlog2-2": "2.41.5-0+deb13u1",
+        "libmount1": "2.41.5-0+deb13u1",
+        "libsmartcols1": "2.41.5-0+deb13u1",
+        "libuuid1": "2.41.5-0+deb13u1",
+        "login": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "mount": "2.41.5-0+deb13u1",
+        "util-linux": "2.41.5-0+deb13u1"
+      }
+    },
+    "CVE-2026-78410": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence",
+        "nonprivileged"
+      ],
+      "reason": "Affected mount/nsenter entry points are removed; the application has UID 10001, zero capabilities and no-new-privileges, no fstab mount authorization and no privileged mount/namespace caller. The initializer only chowns the data-directory inode.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-78410",
+      "packages": {
+        "bsdutils": "1:2.41.5-0+deb13u1",
+        "libblkid1": "2.41.5-0+deb13u1",
+        "liblastlog2-2": "2.41.5-0+deb13u1",
+        "libmount1": "2.41.5-0+deb13u1",
+        "libsmartcols1": "2.41.5-0+deb13u1",
+        "libuuid1": "2.41.5-0+deb13u1",
+        "login": "1:4.16.0-2+really2.41.5-0+deb13u1",
+        "mount": "2.41.5-0+deb13u1",
+        "util-linux": "2.41.5-0+deb13u1"
+      }
+    },
+    "CVE-2026-34980": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence"
+      ],
+      "reason": "The advisory requires an exposed cupsd PostScript queue executing lp; neither printing daemon nor lp is installed.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-34980",
+      "packages": {
+        "libcups2t64": "2.4.10-3+deb13u2"
+      }
+    },
+    "CVE-2025-69720": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence"
+      ],
+      "reason": "The advisory affects analyze_string in the infocmp executable, not the shared terminal libraries; infocmp is removed from the runtime.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2025-69720",
+      "packages": {
+        "libncursesw6": "6.5+20250216-2",
+        "libtinfo6": "6.5+20250216-2",
+        "ncurses-base": "6.5+20250216-2",
+        "ncurses-bin": "6.5+20250216-2"
+      }
+    },
+    "CVE-2026-16742": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence"
+      ],
+      "reason": "The advisory affects systemd-homed, which is absent; installed client libraries do not contain this service.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-16742",
+      "packages": {
+        "libsystemd0": "257.13-1~deb13u1",
+        "libudev1": "257.13-1~deb13u1"
+      }
+    },
+    "CVE-2026-88806": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu"
+      ],
+      "reason": "The advisory requires a malicious X server. Supported rendering uses headless CPU drawing, no DISPLAY, X authority, Wayland display, X sockets or graphics devices.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-88806",
+      "packages": {
+        "libx11-6": "2:1.8.12-1",
+        "libx11-data": "2:1.8.12-1",
+        "libx11-xcb1": "2:1.8.12-1"
+      }
+    },
+    "CVE-2026-6653": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu",
+        "native_xml"
+      ],
+      "reason": "Document/web XML uses fixed static lxml or CPython Expat. The old OS library is only a graphics/LLVM dependency; supported CPU rendering never loads that library or LLVM. Input HTML is generated/escaped, JavaScript and external requests are disabled. Runtime code/lockfile hashes and actual browser process maps are checked.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-6653",
+      "packages": {
+        "libxml2": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      }
+    },
+    "CVE-2026-74860": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence"
+      ],
+      "reason": "The affected system libxml2 Python bindings are absent; application lxml is independently verified against fixed static libxml2 2.15.4.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-74860",
+      "packages": {
+        "libxml2": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      }
+    },
+    "CVE-2026-86138": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu",
+        "native_xml"
+      ],
+      "reason": "Document/web XML uses fixed static lxml or CPython Expat. The old OS library is only a graphics/LLVM dependency; supported CPU rendering never loads that library or LLVM. Input HTML is generated/escaped, JavaScript and external requests are disabled. Runtime code/lockfile hashes and actual browser process maps are checked.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-86138",
+      "packages": {
+        "libxml2": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      }
+    },
+    "CVE-2026-86139": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu",
+        "native_xml"
+      ],
+      "reason": "Document/web XML uses fixed static lxml or CPython Expat. The old OS library is only a graphics/LLVM dependency; supported CPU rendering never loads that library or LLVM. Input HTML is generated/escaped, JavaScript and external requests are disabled. Runtime code/lockfile hashes and actual browser process maps are checked.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-86139",
+      "packages": {
+        "libxml2": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      }
+    },
+    "CVE-2026-86140": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu",
+        "native_xml"
+      ],
+      "reason": "Document/web XML uses fixed static lxml or CPython Expat. The old OS library is only a graphics/LLVM dependency; supported CPU rendering never loads that library or LLVM. Input HTML is generated/escaped, JavaScript and external requests are disabled. Runtime code/lockfile hashes and actual browser process maps are checked.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-86140",
+      "packages": {
+        "libxml2": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      }
+    },
+    "CVE-2026-86142": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu",
+        "native_xml"
+      ],
+      "reason": "Document/web XML uses fixed static lxml or CPython Expat. The old OS library is only a graphics/LLVM dependency; supported CPU rendering never loads that library or LLVM. Input HTML is generated/escaped, JavaScript and external requests are disabled. Runtime code/lockfile hashes and actual browser process maps are checked.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-86142",
+      "packages": {
+        "libxml2": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      }
+    },
+    "CVE-2026-86143": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu",
+        "native_xml"
+      ],
+      "reason": "Document/web XML uses fixed static lxml or CPython Expat. The old OS library is only a graphics/LLVM dependency; supported CPU rendering never loads that library or LLVM. Input HTML is generated/escaped, JavaScript and external requests are disabled. Runtime code/lockfile hashes and actual browser process maps are checked.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-86143",
+      "packages": {
+        "libxml2": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      }
+    },
+    "CVE-2026-86144": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu",
+        "native_xml"
+      ],
+      "reason": "Document/web XML uses fixed static lxml or CPython Expat. The old OS library is only a graphics/LLVM dependency; supported CPU rendering never loads that library or LLVM. Input HTML is generated/escaped, JavaScript and external requests are disabled. Runtime code/lockfile hashes and actual browser process maps are checked.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-86144",
+      "packages": {
+        "libxml2": "2.12.7+dfsg+really2.9.14-2.1+deb13u3"
+      }
+    },
+    "CVE-2026-88807": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "headless_cpu"
+      ],
+      "reason": "The advisory requires a malicious X server. Supported rendering uses headless CPU drawing, no DISPLAY, X authority, Wayland display, X sockets or graphics devices.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-88807",
+      "packages": {
+        "libxrender1": "1:0.9.12-1"
+      }
+    },
+    "CVE-2026-9538": {
+      "status": "not_affected_in_supported_runtime",
+      "guards": [
+        "component_absence"
+      ],
+      "reason": "The affected Archive::Tar module is not installed; application archives are handled by Python.",
+      "evidence": "https://security-tracker.debian.org/tracker/CVE-2026-9538",
+      "packages": {
+        "perl-base": "5.40.1-6+deb13u1"
+      }
+    }
+  }
+}

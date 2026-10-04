@@ -1,5 +1,8 @@
 # 037 — Native XML verification and container permissions
 
+2026-10-05 update: exact verified vendor fixes and supported-runtime classification
+are extended by [038](038-hosted-beta-checks-and-vendor-fixes.md); raw findings remain retained.
+
 Date: 2026-10-05. Continues decision [036](036-public-mit-beta-release.md).
 This corrects the assumption that a successful Python package audit covers the
 native libraries statically embedded in Python wheels. It does not relax the

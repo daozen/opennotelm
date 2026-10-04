@@ -4,6 +4,58 @@ Date / 日期: 2026-10-05. This is a release-preparation review, not a claim of
 completed publication or a general security audit. / 本页记录发布准备核查，不代表已发布或
 完成全面安全审计。
 
+## Current review / 当前核查（038）
+
+The October 5 follow-up passes the local **ARM64 supported-runtime gate**. The full
+raw scan still contains **60 HIGH + 1 CRITICAL records**; none are removed. Five
+records have independently verified vendor fixes: system Expat **2.8.5-2** and ACL
+**2.4.0-1**, pinned to official Debian binaries for both architectures with verified
+SHA-256, package identity, installed file checksums, dependency health and loaded
+Expat version. The corresponding original sources/packaging/notices are retained.
+
+The remaining 56 records (18 advisories) have explicit applicability records for the
+supported server configuration in `tools/container_runtime_review.json`. This is
+the project's analysis of the application and verified runtime; it is **not a vendor
+claim that those system libraries are fixed or generally unaffected**.
+
+| Component | Current classification and required evidence |
+| --- | --- |
+| util-linux (4 advisories) | Affected mount/nsenter tools removed; no root/capability/privileged mount caller, no fstab authorization; initializer only chowns the directory inode. |
+| ACL (1), Expat (4) | Actual fixed vendor packages and runtime/file verification; only the five exact advisory/package/version records are recognized. |
+| CUPS, systemd, Perl | Required cupsd/lp, systemd-homed and Archive::Tar components are absent. Client-library presence is not service presence. |
+| ncurses | Vulnerable infocmp executable removed; the advisory concerns its analyze_string implementation, rather than the retained terminal libraries. |
+| X11/render | Malicious-X-server prerequisite absent: headless CPU rendering, no display/X authority/socket or graphics devices. |
+| OS libxml2 (8) | Python bindings absent. Application XML uses fixed static lxml or CPython Expat; CPU rendering never loads OS libxml2/LLVM. Generated/escaped HTML only, disabled JavaScript and page network; source/lockfile hashes and actual browser process maps are verified. |
+
+The gate verifies the exact policy digest, source inventory/hashes, affected package
+versions, runtime UID/capabilities/no-new-privileges, component absence and real
+screenshot/PDF conditions. It still rejects **every unresolved high/critical record**.
+New advisories, package/source/lockfile/policy drift, missing evidence or review expiry
+**2026-11-04** cannot inherit a decision. Do not simply refresh hashes to bypass review.
+The result does not apply to root/privileged, custom renderer, GPU/X11/device/source-mount
+deployments. GitHub checks and release architecture verification remain separate gates.
+
+本地 **ARM64 受支持运行方式下的门禁已通过**。原始扫描仍有 60 条高危、1 条严重记录，
+未删减。5 条对应系统 Expat 2.8.5-2 和 ACL 2.4.0-1 的实际厂商修复；双架构官方包
+固定哈希，核对身份、实际文件、依赖与加载版本，并保留源码/打包文件/许可。
+
+其余 56 条（18 个漏洞）按准确版本逐项核对当前服务的触发条件：受影响的服务/模块/
+管理工具缺失，非特权且没有挂载授权；Linux 仅 CPU 绘制，无图形设备或 X11；资料
+使用已修复解析器，旧系统 XML/LLVM 库不进入这条渲染路径，原文脚本/HTML 不执行。
+这是项目结合代码和实际探针的适用性分析，不是厂商宣布系统库已修复或普遍无影响。
+
+源代码/锁文件哈希、策略摘要、包版本、权限、组件缺失及真实截图/PDF进程条件均核验。
+未解决项仍失败，新漏洞、版本/代码漂移、证据缺失或 2026-11-04 复核到期不能继承。
+不能仅刷新哈希绕过核查；特权、图形设备、X11、自定义渲染/代码挂载等部署不沿用
+本结论。云端检查和发布架构需单独完成。细节见 [038](decisions/038-hosted-beta-checks-and-vendor-fixes.md)。
+
+## Stage 53 historical checkpoint / Stage 53 历史检查点
+
+The following describes the earlier candidate before decision 038 and is retained
+as historical context. Its unresolved statuses are superseded by the current review
+above for the exact verified configuration only. / 以下为 038 前候选镜像的历史记录，
+仅在上方准确核查的配置和记录范围内由当前结论取代。
+
 ## English
 
 ### Implemented correction

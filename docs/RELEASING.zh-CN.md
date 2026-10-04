@@ -25,6 +25,7 @@
 
 1. 开启 Issues、私密漏洞报告、可用的密钥扫描/推送保护、Dependabot 告警与安全更新。
 2. 保护 main：PR 评审与 checks 检查，禁止强推/删分支；单人项目设置可实际执行的评审规则。
+   当前检查名称：release-contract、test、frontend、container，发布仍要求全部通过。
 3. 不信任的 fork 工作流需审批；PR 仅只读权限，不用 pull_request_target 或生产/模型密钥。
 4. 配置 release environment 的所有者审批，取决于账号/仓库支持，不能认为 YAML 已开启。
 5. Actions 默认只读，手动草稿任务才申请写权限；补简介、topics，验证报告入口。
@@ -44,6 +45,8 @@ uv run python tools/build_release.py --tag v0.1.0-beta.1
 的原样 certifi/tld/lxml 源码、固定哈希的 libxml2/libxslt 源码及许可、含底层组件的
 锁定依赖清单、manifest、SHA256SUMS。
 仅访问公开上游源码，不调用模型或读用户资料。解包后用隔离数据验证首次 Docker 启动。
+两项固定的 Expat/ACL 厂商修复也保留原样 Debian 源码、打包文件和许可，不在运行镜像
+加入不稳定发行版软件源。
 源码清单不是完整容器 SBOM；镜像另生成每架构 SBOM/来源证明，保留浏览器/字体/系统声明。
 容器漏洞扫描与 Python/npm 扫描也是独立步骤。
 扫描额外核对实际内置 XML 版本，将相应组件补入 SBOM，同时保留原始 SBOM 与全部
@@ -66,4 +69,7 @@ uv run python tools/build_release.py --tag v0.1.0-beta.1
 依赖更新审查后运行 `uv run python tools/update_dependency_inventory.py` 刷新许可元数据，
 可能需要查询公开包仓库，再核对许可差异；CI 会拒绝过期清单。
 
-构建后执行 `bash tools/container_scan.sh`：只扫描镜像，保留全部严重等级报告与 CycloneDX SBOM；高危/严重发现会阻止检查通过，包括尚无修复的项目，须逐项审查后解决。报告留在本地忽略目录，不包含挂载的用户资料。
+构建后执行 `bash tools/container_scan.sh`：只扫描镜像，保留全部原始记录与 CycloneDX
+SBOM，另记实际修复/受支持运行条件/未解决项。未解决高危或严重项仍失败，包括无
+修复项目。准确厂商修复及配置适用性需实际探针、源代码/策略哈希和准确版本核对，
+2026-11-04到期，新发现/漂移不继承。报告留在本地忽略目录，不挂载用户资料。

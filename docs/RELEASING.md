@@ -35,6 +35,7 @@ These are owner actions, not features automatically enabled by adding files:
    and Dependabot alerts/security updates where available.
 2. Protect `main`: require reviewed PRs and the `checks` jobs; block force pushes and
    branch deletion. For a solo-maintainer repository, set review rules that remain usable.
+   Current check names: `release-contract`, `test`, `frontend`, `container`.
 3. Require approval for untrusted fork workflow runs. PR workflows use read-only
    permissions, no privileged `pull_request_target` and no production/model secrets.
 4. Configure a `release` environment with the owner's approval before the release job.
@@ -57,7 +58,10 @@ uv run python tools/build_release.py --tag v0.1.0-beta.1
 Default output is the ignored `.release-work/assets/`. It includes a committed-source
 archive, copied runtime notices, original certifi/tld/lxml sources verified against lockfile
 hashes, pinned libxml2/libxslt sources/notices, the locked dependency inventory with
-native-container components, a manifest and SHA256SUMS. Creation accesses
+native-container components, a manifest and SHA256SUMS. The pinned Expat/ACL replacements
+additionally retain original Debian source
+packages, packaging and full notices; no unstable repository is added to the image.
+Creation accesses
 public upstream source archives, not models or user data. Check extraction and fresh
 Docker startup from the archive using isolated data. Hash-check all attachments.
 
@@ -66,7 +70,7 @@ per-platform SBOM/provenance, and retains browser/native/font/OS notices. A full
 container vulnerability scan remains distinct from Python/npm dependency scans.
 The scan also checks actual embedded XML versions and adds those components to its
 SBOM while preserving the raw scanner SBOM and all OS findings. See the bilingual
-[container security review](CONTAINER_SECURITY_REVIEW.md) for the current unresolved gate.
+[container security review](CONTAINER_SECURITY_REVIEW.md) for the scoped findings and conditions.
 
 ## Draft and publish
 
@@ -95,4 +99,9 @@ After reviewing a dependency update, use `uv run python tools/update_dependency_
 to refresh metadata (public registry requests may be needed), then review the resulting
 license changes. CI rejects stale inventory entries.
 
-After building, run `bash tools/container_scan.sh`. It scans only the image and retains all severity findings plus a CycloneDX SBOM. High/critical findings fail the check, including unfixed entries; review and resolve them before publishing. Reports stay in the ignored local directory, without mounted user data.
+After building, run `bash tools/container_scan.sh`. It scans only the image and retains
+all raw findings plus a CycloneDX SBOM and a separate applicability review. Unresolved
+high/critical findings fail, including unfixed entries. Exact vendor fixes and current
+supported-runtime decisions require independent probes, matching source/policy hashes
+and package versions, and expire on November 4, 2026. New/drifted findings do not inherit
+decisions. Reports stay in the ignored local directory, without mounted user data.

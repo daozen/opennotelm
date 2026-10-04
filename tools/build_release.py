@@ -82,6 +82,14 @@ def build(root: Path, output: Path, tag: str) -> list[Path]:
             if not entry["url"].startswith("https://download.gnome.org/sources/"):
                 raise ValueError("Unexpected native source host")
             upstreams.append((name, entry["url"], "sha256:" + entry["sha256"]))
+        debian = json.loads((root / "tools/debian_security_packages.json").read_text())
+        for name, entry in debian["packages"].items():
+            for source_entry in entry["sources"]:
+                if not source_entry["url"].startswith("https://deb.debian.org/debian/pool/main/"):
+                    raise ValueError("Unexpected Debian security source host")
+                upstreams.append(
+                    ("debian-" + name, source_entry["url"], "sha256:" + source_entry["sha256"])
+                )
         for name, url, expected_hash in upstreams:
             with urllib.request.urlopen(url, timeout=60) as response:
                 data = response.read(30 * 1024 * 1024 + 1)
@@ -98,7 +106,23 @@ def build(root: Path, output: Path, tag: str) -> list[Path]:
                 target = notices / "native-xml" / f"{name}-Copyright"
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(copyright_text)
+            elif name.startswith("debian-") and url.endswith(".debian.tar.xz"):
+                with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+                    copyright_text = tar.extractfile("debian/copyright").read()
+                target = notices / "debian-security" / (name.removeprefix("debian-") + "-copyright")
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(copyright_text)
+            elif name.startswith("debian-") and ".orig.tar." in url:
+                with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+                    for member in tar.getmembers():
+                        if member.isfile() and Path(member.name).name.startswith("COPYING"):
+                            target = (
+                                notices / "debian-security" / (name + "-" + Path(member.name).name)
+                            )
+                            target.parent.mkdir(parents=True, exist_ok=True)
+                            target.write_bytes(tar.extractfile(member).read())
         (notices / "native-xml/sources.json").write_text(json.dumps(native, indent=2) + "\n")
+        (notices / "debian-security/packages.json").write_text(json.dumps(debian, indent=2) + "\n")
         notices_asset = output / f"{prefix}-third-party-notices.tar.gz"
         archive(notices, notices_asset, "third-party-notices")
         files.append(notices_asset)
@@ -108,6 +132,7 @@ def build(root: Path, output: Path, tag: str) -> list[Path]:
     inventory = output / f"{prefix}-dependency-inventory.json"
     inventory_data = json.loads((root / "docs/DEPENDENCIES.json").read_text())
     inventory_data["native_container_components"] = native
+    inventory_data["debian_security_packages"] = debian
     inventory.write_text(json.dumps(inventory_data, ensure_ascii=False, indent=2) + "\n")
     files.append(inventory)
     metadata = output / "release-manifest.json"

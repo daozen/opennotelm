@@ -26,6 +26,12 @@ DOCKER_HOST="$(docker context inspect --format '{{.Endpoints.docker.Host}}')"
 docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges:true \
   --entrypoint /app/.venv/bin/python "$image" \
   /app/tools/check_xml_runtime.py --json > "$output/native-xml.json"
+docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges:true \
+  --entrypoint /app/.venv/bin/python "$image" \
+  /app/tools/install_debian_security.py --check > "$output/debian-security.json"
+docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges:true \
+  --entrypoint /app/.venv/bin/python "$image" \
+  /app/tools/probe_security_runtime.py > "$output/applicability.json"
 # Keep all severity findings; do not suppress unfixed findings or scan secrets.
 "$tool_dir/trivy" image --cache-dir "$output/cache" --timeout 15m --scanners vuln \
   --format json --output "$output/vulnerabilities.json" "$image"
@@ -33,15 +39,6 @@ docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges:t
   --skip-db-update --format cyclonedx --output "$output/sbom.raw.cdx.json" "$image"
 python3 tools/native_xml_sbom.py --sbom "$output/sbom.raw.cdx.json" \
   --native "$output/native-xml.json" --output "$output/sbom.cdx.json"
-python3 - "$output/vulnerabilities.json" <<'PY'
-import collections
-import json
-import sys
-from pathlib import Path
-rows = [v for r in json.loads(Path(sys.argv[1]).read_text()).get('Results', [])
-        for v in r.get('Vulnerabilities', [])]
-counts = collections.Counter(v['Severity'] for v in rows)
-print('Container vulnerability findings by severity:', dict(sorted(counts.items())))
-if counts['HIGH'] or counts['CRITICAL']:
-    raise SystemExit('Review and resolve high/critical findings before publishing.')
-PY
+python3 tools/review_container_findings.py --scan "$output/vulnerabilities.json" \
+  --runtime "$output/debian-security.json" --output "$output/review.json" \
+  --applicability "$output/applicability.json" --policy tools/container_runtime_review.json

@@ -106,3 +106,12 @@ IMPLEMENTATION_PLAN 只记录实施/发布状态；ACCEPTANCE 记录具体版本
 lxml并固定新XML/XSLT源码哈希、核对实际加载版本，许可与对应源码进入附件；应用
 权限删除、初始化只保留CHOWN。原生uv sync、现有应用和用户数据不变，系统包高危/
 严重项仍严格阻止发布，详见037、CONTAINER_SECURITY_REVIEW与ACCEPTANCE Stage53。
+
+## C45 — Hosted checks and exact container applicability (038)
+
+用户进一步授权完成上传、实际GitHub检查及通过后的首个中英文Beta发布。公开PR接续
+原LICENSE提交，不上传私有开发祖先。后端/前端/容器分别检查；只将测试等待5秒扩大到
+30秒，不放松产品校验。容器固定兼容厂商补丁、限制CPU绘制并移除管理工具，准确版本、
+运行代码、权限及组件条件由探针核查；原始漏洞记录保留，新记录/版本漂移/复核到期和
+未解决高危仍失败。账号登录是仓库设置/发布页面的实际前置条件，不再泛泛重复询问
+发布授权。详见038和ACCEPTANCE Stage54。

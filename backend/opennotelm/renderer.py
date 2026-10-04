@@ -4,6 +4,7 @@ import base64
 import html
 import json
 import re
+import sys
 from io import BytesIO
 from pathlib import Path
 
@@ -25,6 +26,10 @@ from .render_schemas import (
 )
 
 RENDERER_VERSION = "chromium-page-v6"
+# Server rendering needs only CPU drawing; never invoke host Mesa/LLVM or X11.
+SERVER_BROWSER_ARGS = (
+    ["--disable-gpu", "--disable-software-rasterizer"] if sys.platform == "linux" else []
+)
 
 
 def painted_contrast_feedback(render, text_layer, background):
@@ -341,6 +346,7 @@ class PageRenderer:
                 browser = await playwright.chromium.launch(
                     executable_path=self.settings.render_browser_executable,
                     headless=True,
+                    args=SERVER_BROWSER_ARGS,
                     timeout=20000,
                 )
                 try:
@@ -372,6 +378,7 @@ class PageRenderer:
                 browser = await playwright.chromium.launch(
                     executable_path=self.settings.render_browser_executable,
                     headless=True,
+                    args=SERVER_BROWSER_ARGS,
                     timeout=20000,
                 )
                 try:

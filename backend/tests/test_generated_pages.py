@@ -40,7 +40,7 @@ def new_page_deck(client, notebook, count=10):
     response = client.post(f"/api/notebooks/{notebook}/decks", json={"slide_count": count})
     assert response.status_code == 202, response.text
     created = response.json()
-    job = wait_for_job(client, created["job"]["id"], timeout=15 if count == 20 else 5)
+    job = wait_for_job(client, created["job"]["id"])
     return client.get(f"/api/decks/{created['id']}").json(), job
 
 

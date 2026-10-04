@@ -21,6 +21,10 @@ development/platform-only entries are not all shipped in a runtime image.
   The Docker-specific rebuilt lxml library retains libxml2/libxslt/libexslt copyright
   texts and verified source hashes under `/app/licenses/native-xml/`; release assets
   include these unmodified native sources and notices too.
+  The two pinned Debian security replacements retain complete package copyright and
+  common license texts under `/app/licenses/debian-security/`. Release attachments
+  include their verified original source archives, Debian packaging and notices;
+  ACL retains LGPL-2.1-or-later, rather than inheriting the project's MIT license.
   Browser/OS/native dependencies are not covered completely by the application inventory;
   image releases separately create platform-specific SBOM/provenance.
 - certifi uses MPL-2.0. tld offers MPL-1.1/GPL/LGPL alternatives; this distribution

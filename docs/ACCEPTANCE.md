@@ -2505,3 +2505,57 @@ finish system-library applicability/patch review and GitHub settings/hosted chec
 then verify both release architectures and deliberately approve publication. Native
 OS/package scans, real-model quality and a general security/legal audit are not proved
 by these tests. Production application and live data remain untouched.
+
+## Stage 54 — Hosted Beta checks and vendor fixes (2026-10-05)
+
+Scope: execute the explicitly authorized public upload/hosted checks and prepare
+publication after passing gates. No new publication authorization is required; actual
+account login/settings and completed release checks remain operational prerequisites.
+
+- Uploaded 404 reviewed files through GitHub Git Data APIs, including nine synthetic
+  binary fixtures/captures whose Git blob hashes were verified. Remote tree
+  `dd447eeae2f9a6ac0b744645b84f8b254a5d38c6` matches the local public snapshot.
+  Commit `03bd8580412adb45ec674ab0d2faaa3c2b0489a8` has only the original LICENSE
+  commit as parent; native fetch confirms author/footer identity. Private history
+  was not uploaded. [PR 1](https://github.com/daozen/opennotelm/pull/1) is attached.
+- Actual [hosted run 37235053270](https://github.com/daozen/opennotelm/actions/runs/37235053270)
+  passed release contracts, secrets, DCO and Python dependency audit. Backend had
+  **536 passed, 3 failed in 471.06s**. All failures were still-running image/PDF tasks
+  exceeding the five-second test wait, rather than successful results being accepted.
+  Corrected both the shared deadline and the ten-page explicit override to 30 seconds;
+  terminal status/result assertions and production contracts remain unchanged.
+- **54 affected generation/retry tests passed** (89.57s). **42 focused security/release
+  checks passed** (23 new checks plus 19 existing guards). These are focused results,
+  not a claim of a current full local backend pass. Backend/frontend/Docker CI jobs
+  now run independently, with every job required by the reusable release workflow.
+- Compatible official Debian Expat **2.8.5-2** and ACL **2.4.0-1** binaries were pinned
+  for both architectures using hashes from signed Debian indexes. ARM64 image build,
+  exact identities, dependency health, package file checksums and loaded Expat version
+  passed. Corresponding source/packaging hashes and complete notices are included.
+  Runtime retains no unstable repository. Source-archive attachment verification for
+  this incremental candidate remains a separate step.
+- Linux server rendering uses CPU drawing, without host graphics/LLVM/XML input;
+  unused mount/umount/nsenter/infocmp executables are removed. Actual runtime probes
+  verified 82 runtime-code/lockfile hashes, matching policy digest, exact affected
+  package versions, UID/capabilities/no-new-privileges, component absence, no authorized
+  mounts/display/graphics devices, and real screenshot/PDF process maps.
+- ARM64 image `sha256:c2df6905cb5c6f3b52b38112c942dccdc3a2d8f324daac480d7b23d2f4b25159`
+  passed the complete scanner/review gate: raw **60 HIGH + 1 CRITICAL** retained,
+  **5 verified vendor-fixed records**, **56 conditional supported-runtime records**,
+  **zero unresolved high/critical records**. Full raw JSON, raw/enriched SBOM and
+  independent evidence remain local. This is not a general OS patch/security claim.
+  Version/source/policy changes, new advisories, missing evidence or expiry on
+  **2026-11-04** require reassessment; negative tests exercise these failure paths.
+- Both vendor-fix and final CPU-hardened candidates passed isolated fresh setup
+  **1 + 33 browser flows** (5.0m and 4.9m). Restart and recreation each preserved
+  **83 snapshots, 41 download hashes, 177 files, 3 decrypted synthetic secrets**,
+  stopped Deck state and batch sibling reuse. Five-format web-image checks passed.
+  Isolated containers were cleaned up; no native/Docker browser output overlap.
+- Ruff check/format **252 files**, workflow lint and browser startup/render/PDF
+  preflight passed. Existing live data/service/native dependencies were not changed;
+  no actual model calls or user-material tests were used.
+
+Follow-up hosted checks, both release architectures, account-dependent settings,
+tag/image visibility, anonymous pulls, final bilingual assets and Beta publication
+are recorded separately as they actually complete. Initial cloud failures above
+are retained as historical evidence, rather than replaced with local passes.

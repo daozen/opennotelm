@@ -1,7 +1,8 @@
 # First Beta preparation status / 首个 Beta 准备状态
 
 Target / 目标：`daozen/opennotelm`, MIT, proposed tag / 候选标签 `v0.1.0-beta.1`.
-Preparation is not publication. / 准备不代表已经发布。
+The reviewed source is uploaded to [PR 1](https://github.com/daozen/opennotelm/pull/1).
+No versioned Beta Release has been published. / 公开源码已上传至 PR 1，尚未发布版本化 Beta。
 
 ## English
 
@@ -25,23 +26,35 @@ Completed locally:
   Another complete 33-flow container run and restart/recreate checks passed.
   [Security review](CONTAINER_SECURITY_REVIEW.md) distinguishes these changes from
   the remaining OS findings; native installations are not automatically patched.
+- October 5 follow-up: pinned Debian Expat/ACL fixes, CPU server rendering and removal
+  of unused administrative tools. The ARM64 gate preserves all 60 HIGH + 1 CRITICAL
+  raw records, independently verifies 5 fixes and verifies supported-runtime conditions
+  for 56 records; unresolved count is zero for this exact configuration. Review expires
+  November 4; this is not a general patched-OS claim. See decision 038.
+- The public Git tree was uploaded through the connected GitHub application and
+  matched the reviewed snapshot. Public commit `03bd858` has only the original
+  LICENSE commit as parent, with a verified matching DCO footer.
+- Actual initial [GitHub run](https://github.com/daozen/opennotelm/actions/runs/37235053270):
+  release contract, secrets, DCO and Python audit passed; backend had 536 passes and
+  3 bounded-wait failures. The shared test deadline was corrected and 54 affected
+  generation tests plus 42 release/security checks passed locally. Follow-up cloud
+  jobs are independent; local tests do not substitute for their actual results.
 
 Before publishing:
 
-1. Resolve the container security gate: the updated Debian 13 candidate still has
-   60 high and 1 critical package/advisory records (23 distinct advisories), without
-   reported fixed versions. These are scanner records requiring applicability review,
-   not all proven exploitable. No blanket suppression was applied. Findings and actual final
-   image verification are recorded in [ACCEPTANCE](ACCEPTANCE.md#stage-53--native-xml-and-container-hardening-2026-10-05).
-2. Review the clean `codex/public-beta` snapshot continuing the remote LICENSE-only
-   main; retain the private development history locally. Do not push private branches.
+1. Complete actual follow-up GitHub checks and verify release images on both
+   architectures. The scoped ARM64 security gate passes; preserve the raw report
+   and verify the same conditions on amd64. Do not bypass drift/expiry/new findings.
+2. Review and merge the updated `codex/public-beta` PR only after checks pass;
+   retain private development history locally. Do not push private branches.
 3. Enable the repository settings listed in [RELEASING](RELEASING.md). The available
    browser was signed out and the connector could inspect, but not apply, those settings.
-   Local HTTPS and SSH push preflights also lack usable authentication; no source was uploaded.
+   Native Git login remains unavailable, but the connected app successfully uploaded
+   the reviewed source. That app does not expose repository settings/release operations.
 4. Run actual GitHub checks, verify both image architectures, package visibility and
    anonymous pulls, then review the bilingual draft/assets/checksums and publish deliberately.
 
-No source push, public tag, image push or GitHub Release has been performed. No live
+Source has been uploaded; no public tag, image push or GitHub Release has been performed. No live
 user-data tests, model calls, application upgrade or production restart were involved.
 Mock tests do not prove real-model content accuracy or native-speaker translation review.
 
@@ -64,20 +77,26 @@ Mock tests do not prove real-model content accuracy or native-speaker translatio
   保留来源、许可与原样源码附件；应用删除额外系统权限，初始化仅保留 CHOWN。
   再次通过完整 33 项容器流程及重启/重建检查。[安全核查](CONTAINER_SECURITY_REVIEW.md)
   区分这些修复与剩余系统包记录，原生安装不会自动获得该替换。
+- 10 月 5 日续：固定 Debian Expat/ACL 修复包、CPU 服务绘制并删除不用的管理工具。
+  ARM64 门禁保留全部 60 条高危、1 条严重原始记录，5 条核对实际修复，56 条核对受
+  支持运行条件，准确配置下未解决项为零；11 月 4 日到期，不宣称系统库普遍已修复。
+- 已通过 GitHub 连接器上传准确公开树，提交 03bd858 仅接续原 LICENSE 提交，DCO
+  姓名邮箱匹配。PR 1 提供审查入口，私有开发历史未上传。
+- 首轮真实云端检查：发布规范、密钥、DCO 和 Python 审计通过；后端 536 通过、3 项
+  等待期限失败。已修正测试期限，本地受影响的 54 项生成测试和 42 项发布/安全检查
+  通过；后续检查独立运行，本地通过不等于云端已经通过。
 
 正式发布前：
 
-1. 解决镜像安全检查：更新后的 Debian 13 候选仍有 60 条高危、1 条严重包/漏洞记录
-   （23 个不同漏洞），未给出已修复版本。需要核查实际影响，不代表每项已证实可利用，
-   没有批量忽略这些记录。发现项和最终镜像的实际验证见
-   [ACCEPTANCE](ACCEPTANCE.md#stage-53--native-xml-and-container-hardening-2026-10-05)。
-2. 审查基于远程仅含 LICENSE 的 main 创建的干净 `codex/public-beta` 快照；完整私有
-   开发历史留在本地，不推送私有分支。
+1. 完成后续实际 GitHub 检查，并验证双架构发布镜像。准确 ARM64 配置下安全门禁
+   已通过，保留原始报告，amd64 需核对同样条件；不能绕过漂移/过期/新发现。
+2. 检查通过后审查并合并 `codex/public-beta` PR；私有完整历史留在本地，不推送。
 3. 按[发布清单](RELEASING.zh-CN.md)开启仓库设置。当前浏览器未登录，已有连接器
    能读取仓库信息，但不能应用这些设置。
-   本机 HTTPS/SSH 模拟推送也没有可用登录身份，尚未上传源码。
+   本机 Git 登录仍不可用，但连接器已完成公开源码上传；该连接器未提供仓库设置及
+   发布页面操作，仍需要浏览器登录。
 4. 完成真实 GitHub 检查、双架构镜像验证、包公开性及匿名拉取检查，再审查中英文
    草稿、附件与校验值，并有意发布。
 
-尚未推送源码、公开标签、镜像或 GitHub Release。没有用真实用户资料测试、调用模型、
+源码已上传，尚未发布公开标签、镜像或 GitHub Release。没有用真实用户资料测试、调用模型、
 升级现有应用或重启生产服务。模拟测试不证明真实模型准确性或母语翻译审校已完成。

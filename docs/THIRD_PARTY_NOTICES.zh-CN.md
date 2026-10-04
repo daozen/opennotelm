@@ -18,6 +18,9 @@
   不要移除声明或获取对应源码的途径。
 - Docker 重编译的 lxml 底层库将 libxml2/libxslt/libexslt 版权原文及来源哈希保存在
   /app/licenses/native-xml；发布附件也包含这些原样底层源码和许可。
+- 两项固定的 Debian 安全修复保留完整版权/许可文本于 /app/licenses/debian-security；
+  发布附件包含对应原始源码、Debian 打包文件及声明。ACL 保留 LGPL-2.1-or-later，
+  不因应用使用 MIT 而改为 MIT。
 - 原生 Deck 中复制的 Lucide 几何保留英文声明中的完整 ISC/Feather 版权信息。
 
 上游元数据不是完整法律审计。新增依赖、修改 copyleft 文件、分发模型权重或素材时需再核对。
