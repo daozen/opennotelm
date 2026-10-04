@@ -18,7 +18,7 @@ dependencies = [
   "markdown-it-py>=4,<5",
   "playwright>=1.55,<2",
   "pillow>=12,<13",
-  "reportlab>=4,<5",
+  "reportlab>=4,<6",
   "pypdfium2>=4.30,<6",
   "trafilatura>=2.1,<3",
 ]
