@@ -32,6 +32,26 @@ def archive(directory: Path, destination: Path, prefix: str) -> None:
                 tar.addfile(info, io.BytesIO(data))
 
 
+def debian_notices(name: str, url: str, data: bytes) -> list[tuple[str, bytes]]:
+    """Read archive notices; detached signatures/descriptors remain original attachments."""
+    if url.endswith(".debian.tar.xz"):
+        with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+            return [
+                (
+                    name.removeprefix("debian-") + "-copyright",
+                    tar.extractfile("debian/copyright").read(),
+                )
+            ]
+    if ".orig.tar." in url and url.endswith((".tar.gz", ".tar.xz", ".tar.bz2")):
+        with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+            return [
+                (name + "-" + Path(member.name).name, tar.extractfile(member).read())
+                for member in tar.getmembers()
+                if member.isfile() and Path(member.name).name.startswith("COPYING")
+            ]
+    return []
+
+
 def build(root: Path, output: Path, tag: str) -> list[Path]:
     version = tomllib.loads((root / "pyproject.toml").read_text())["project"]["version"]
     validate_tag(tag, version)
@@ -106,21 +126,11 @@ def build(root: Path, output: Path, tag: str) -> list[Path]:
                 target = notices / "native-xml" / f"{name}-Copyright"
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(copyright_text)
-            elif name.startswith("debian-") and url.endswith(".debian.tar.xz"):
-                with tarfile.open(fileobj=io.BytesIO(data)) as tar:
-                    copyright_text = tar.extractfile("debian/copyright").read()
-                target = notices / "debian-security" / (name.removeprefix("debian-") + "-copyright")
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(copyright_text)
-            elif name.startswith("debian-") and ".orig.tar." in url:
-                with tarfile.open(fileobj=io.BytesIO(data)) as tar:
-                    for member in tar.getmembers():
-                        if member.isfile() and Path(member.name).name.startswith("COPYING"):
-                            target = (
-                                notices / "debian-security" / (name + "-" + Path(member.name).name)
-                            )
-                            target.parent.mkdir(parents=True, exist_ok=True)
-                            target.write_bytes(tar.extractfile(member).read())
+            elif name.startswith("debian-"):
+                for filename, notice in debian_notices(name, url, data):
+                    target = notices / "debian-security" / filename
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(notice)
         (notices / "native-xml/sources.json").write_text(json.dumps(native, indent=2) + "\n")
         (notices / "debian-security/packages.json").write_text(json.dumps(debian, indent=2) + "\n")
         notices_asset = output / f"{prefix}-third-party-notices.tar.gz"
