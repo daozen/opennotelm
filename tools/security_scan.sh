@@ -17,11 +17,19 @@ curl --fail --silent --show-error --location \
   "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_${platform}.tar.gz" \
   --output "$tool_dir/archive.tar.gz"
 actual="$(shasum -a 256 "$tool_dir/archive.tar.gz" | cut -d ' ' -f 1)"
-test "$actual" = "$expected"
+if [[ "$actual" != "$expected" ]]; then
+  printf 'Secret-scanner download checksum mismatch.\n' >&2
+  exit 2
+fi
 tar -xzf "$tool_dir/archive.tar.gz" -C "$tool_dir" gitleaks
+python3 tools/verify_secret_scan.py "$tool_dir/gitleaks"
 # Reports stay local/temporary and fully redact detected values. Never upload them.
-"$tool_dir/gitleaks" git . --log-opts='--all --full-history' --redact=100 \
-  --report-format json --report-path "$output/history.json" > "$output/history.log" 2>&1
+if ! "$tool_dir/gitleaks" git . --config "$repo_root/.gitleaks.toml" \
+  --log-opts='--all --full-history' --redact=100 \
+  --report-format json --report-path "$output/history.json" > "$output/history.log" 2>&1; then
+  printf 'Secret scan failed in Git history. Inspect the local redacted report; no values are logged.\n' >&2
+  exit 1
+fi
 # Scan only Git-visible public files. Never traverse ignored production data,
 # private verification reports, .env or generated artifacts in the working tree.
 mkdir -p "$tool_dir/public-tree"
@@ -37,6 +45,10 @@ while IFS= read -r -d '' file; do
   mkdir -p "$tool_dir/public-tree/$(dirname "$file")"
   cp "$file" "$tool_dir/public-tree/$file"
 done < <(git ls-files -z --cached --others --exclude-standard)
-"$tool_dir/gitleaks" dir "$tool_dir/public-tree" --redact=100 --report-format json \
-  --report-path "$output/tree.json" > "$output/tree.log" 2>&1
+if ! "$tool_dir/gitleaks" dir "$tool_dir/public-tree" --config "$repo_root/.gitleaks.toml" \
+  --redact=100 --report-format json \
+  --report-path "$output/tree.json" > "$output/tree.log" 2>&1; then
+  printf 'Secret scan failed in current files. Inspect the local redacted report; no values are logged.\n' >&2
+  exit 1
+fi
 printf 'Secret scan passed for Git history and current files. Reports retained locally.\n'
