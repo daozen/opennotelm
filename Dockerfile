@@ -33,12 +33,17 @@ RUN uv sync --locked --no-dev --no-install-project && .venv/bin/playwright insta
     && mkdir -p /app/data && chown -R app:app /app/data
 COPY backend/ ./backend/
 RUN uv sync --locked --no-dev
+COPY tools/debian_security_packages.json tools/install_debian_security.py ./tools/
+RUN python tools/install_debian_security.py
+# These administrative/terminal tools are not part of the application runtime.
+RUN rm -f /usr/bin/mount /usr/bin/umount /usr/bin/nsenter /usr/bin/infocmp
 COPY --from=xml-builder /build/licenses/ /app/licenses/native-xml/
 COPY tools/check_xml_runtime.py ./tools/
 RUN --mount=type=bind,from=xml-builder,source=/build/wheels,target=/tmp/xml-wheels \
     uv pip install --python .venv/bin/python --no-deps --reinstall /tmp/xml-wheels/*.whl \
     && .venv/bin/python tools/check_xml_runtime.py
 COPY tools/python_notices.py tools/browser_notices.py ./tools/
+COPY tools/probe_security_runtime.py tools/container_runtime_review.json ./tools/
 RUN .venv/bin/python tools/python_notices.py --output /app/licenses/python
 RUN .venv/bin/python tools/browser_notices.py --output /app/licenses/browser
 COPY --from=frontend /build/frontend/dist ./frontend/dist

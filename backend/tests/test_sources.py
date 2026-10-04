@@ -6,7 +6,9 @@ from opennotelm.main import create_app
 from restart_support import restart
 
 
-def wait_for_job(client, job_id, *, timeout=5):
+def wait_for_job(client, job_id, *, timeout=30):
+    # Image encoding/browser export can exceed five seconds on hosted runners.
+    # Keep a bounded real-time deadline; callers can still request a short limit.
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         job = client.get(f"/api/jobs/{job_id}").json()
