@@ -2559,3 +2559,33 @@ Follow-up hosted checks, both release architectures, account-dependent settings,
 tag/image visibility, anonymous pulls, final bilingual assets and Beta publication
 are recorded separately as they actually complete. Initial cloud failures above
 are retained as historical evidence, rather than replaced with local passes.
+
+
+## Stage 55 — Hosted results and precise checksum false positive (2026-10-05)
+
+[Run 37238505777](https://github.com/daozen/opennotelm/actions/runs/37238505777)
+tested public head `efe5078c7f9da7077b54c3035fafcfda3f206387`, whose tree exactly
+matches the locally reviewed tree. Both public commits have DCO identity verified;
+private development ancestors remain local.
+
+- Hosted backend: **562 passed in 432.50s**, Ruff check/format passed.
+- Hosted frontend: **110 passed**, build/format/npm audit passed; **33 real browser
+  flows passed in 5.8m**.
+- Hosted amd64 container: fresh setup **1 + 33 flows passed** (5.3m), restart and
+  recreation each preserve **83 snapshots, 41 download hashes, 177 files and 3
+  decrypted synthetic secrets**. Stopped Deck and batch sibling preservation passed.
+- Hosted amd64 raw scan retains **60 HIGH + 1 CRITICAL**. Actual native/vendor
+  checks and supported-runtime probes pass; **5 fixed**, **56 conditional**, **zero
+  unresolved high/critical records**. This is the same scoped, expiring assessment
+  as local ARM64, not a general OS security claim or final published-digest check.
+- Release contract passed metadata checks but Gitleaks flagged the exact public
+  `secrets.py` source SHA-256 in the runtime-review manifest. Independently recomputed
+  hash matches; this is a checksum, not a credential. Added a rule-specific exception
+  requiring BOTH exact path and entire exact record. All default rules remain active.
+- Actual local Gitleaks verifies the exception, rejects the same value in another
+  file, another value in the same record, and an API-key-shaped value in the same
+  manifest. Public Git history and tree scan pass; reports remain fully redacted and
+  local. Cloud failure logs now identify the failed stage without detected values.
+- This scanner-only correction and documentation require hosted follow-up. No live
+  service/data or product behavior was changed. Account login/settings, final
+  release assets/tag/image digest and actual Beta publication remain pending.

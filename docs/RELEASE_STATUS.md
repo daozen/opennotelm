@@ -40,11 +40,19 @@ Completed locally:
   generation tests plus 42 release/security checks passed locally. Follow-up cloud
   jobs are independent; local tests do not substitute for their actual results.
 
+- Follow-up [hosted run 37238505777](https://github.com/daozen/opennotelm/actions/runs/37238505777):
+  backend **562 passed**, frontend **110 passed**, native **33 browser flows**, amd64
+  container fresh setup **1 + 33 flows** plus both persistence checks and scoped security
+  gate passed. Together with local ARM64 evidence, both architectures have been tested;
+  the final published digest still requires verification. Secret scanning flagged one
+  public file checksum. Its exact path/record exception passed local full-history/tree
+  scanning plus three synthetic rejection cases; hosted verification of that fix is pending.
+
 Before publishing:
 
-1. Complete actual follow-up GitHub checks and verify release images on both
-   architectures. The scoped ARM64 security gate passes; preserve the raw report
-   and verify the same conditions on amd64. Do not bypass drift/expiry/new findings.
+1. Complete hosted verification of the exact checksum false-positive fix and verify
+   the final published image digest on both architectures. Native ARM64 and hosted amd64
+   scoped gates pass; do not bypass drift/expiry/new findings.
 2. Review and merge the updated `codex/public-beta` PR only after checks pass;
    retain private development history locally. Do not push private branches.
 3. Enable the repository settings listed in [RELEASING](RELEASING.md). The available
@@ -86,10 +94,16 @@ Mock tests do not prove real-model content accuracy or native-speaker translatio
   等待期限失败。已修正测试期限，本地受影响的 54 项生成测试和 42 项发布/安全检查
   通过；后续检查独立运行，本地通过不等于云端已经通过。
 
+- 后续云端运行 37238505777：后端 **562**、前端 **110**、原生浏览器 **33** 项通过；
+  amd64 容器首次设置 **1 + 33** 项、重启/重建持久性及条件化安全门禁通过。与本地
+  ARM64 证据结合已验证两个架构，正式镜像摘要仍需再核对。密钥扫描误认了一条公开
+  文件校验值；准确路径/完整记录豁免已通过本地公开历史/文件扫描及三个负向用例，
+  此修复的云端复验待完成。
+
 正式发布前：
 
-1. 完成后续实际 GitHub 检查，并验证双架构发布镜像。准确 ARM64 配置下安全门禁
-   已通过，保留原始报告，amd64 需核对同样条件；不能绕过漂移/过期/新发现。
+1. 完成准确校验值误报修复的云端复验，并核对最终双架构发布镜像摘要。本地 ARM64
+   及云端 amd64 条件化门禁均已通过；保留原始报告，不能绕过漂移/过期/新发现。
 2. 检查通过后审查并合并 `codex/public-beta` PR；私有完整历史留在本地，不推送。
 3. 按[发布清单](RELEASING.zh-CN.md)开启仓库设置。当前浏览器未登录，已有连接器
    能读取仓库信息，但不能应用这些设置。

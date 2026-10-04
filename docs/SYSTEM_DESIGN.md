@@ -1,6 +1,6 @@
 # OpenNoteLM 当前系统设计
 
-更新日期：2026-10-04；实现范围为 `769f463` 基础及 decisions 030–036 增量，migrations `001`–`019`。
+更新日期：2026-10-05；实现范围为 `769f463` 基础及 decisions 030–038 增量，migrations `001`–`019`。
 当前产品契约见 [PRD](PRD.md)，与原始 v0.1 的差异见 [需求变更](REQUIREMENTS_CHANGES.md)。
 [原设计](archive/v0.1/SYSTEM_DESIGN.md)保留用于历史对照，不能覆盖后续决策。
 这里描述实际结构与约束；后续任务的入口、验证和操作步骤见 [HANDOFF](HANDOFF.md)。
