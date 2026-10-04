@@ -1,0 +1,42 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem without private data. / 报告可复现的问题，不提供私有资料或凭据。
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use synthetic data. Never attach API keys, original private documents,
+        database dumps, prompts, raw provider responses, or private endpoint URLs.
+        Security vulnerabilities belong in the private reporting channel in SECURITY.md.
+        请使用自写示例，不提交密钥、私有原文、数据库、提示/响应或私有服务地址。
+        安全漏洞请通过 SECURITY.md 中的私密渠道报告。
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit / 版本
+      placeholder: Release tag or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment / 部署方式
+      options: [Docker, Native / 本地运行, Other / 其他]
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      description: Include expected/actual behavior and a self-written sample. / 说明预期与实际行为，使用简短自写示例。
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: OS, browser, language, file type and public model names; no secrets. / 系统、浏览器、语言、文件类型及公开模型名称，不提供私有地址或密钥。
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Safe error details / 安全错误信息
+      description: Error code, stage, HTTP status and reviewed safe diagnostics. / 错误码、失败阶段、HTTP 状态及检查过的安全诊断；截图隐藏私有标题与内容。

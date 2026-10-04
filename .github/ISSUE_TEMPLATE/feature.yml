@@ -1,0 +1,20 @@
+name: Feature request / 功能建议
+description: Explain the problem and desired outcome. / 说明使用问题与期望效果。
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem / 使用问题
+      description: Describe the workflow and benefit; omit private sources. / 说明使用流程与价值，不附私有原文。
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome / 期望效果
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and tradeoffs / 替代方式与取舍

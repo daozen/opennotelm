@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/daozen/opennotelm/security/advisories/new
+    about: Report security vulnerabilities privately; see SECURITY.md for the fallback.
+  - name: Installation and troubleshooting
+    url: https://github.com/daozen/opennotelm/blob/main/docs/USER_GUIDE.md
+    about: Check setup, models, generation errors and backups before filing a bug.
