@@ -1,0 +1,100 @@
+name: prepare-release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Reviewed existing tag, for example v0.1.0-beta.1
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ inputs.tag }}
+  draft:
+    needs: checks
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.12.6'
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: Validate exact tag and prepare source/notices
+        id: reviewed
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          uv sync --locked
+          uv run python tools/release_check.py --tag "$RELEASE_TAG"
+          test "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+          printf 'commit=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          npm ci --ignore-scripts --prefix frontend
+          uv run python tools/build_release.py --tag "$RELEASE_TAG"
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Define immutable-version image tags
+        id: image
+        env:
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          image="ghcr.io/${REPOSITORY,,}"
+          printf 'name=%s\n' "$image" >> "$GITHUB_OUTPUT"
+          printf 'tag=%s\n' "${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+      - name: Build versioned images and SBOM/provenance
+        id: build
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.version=${{ inputs.tag }}
+            org.opencontainers.image.revision=${{ steps.reviewed.outputs.commit }}
+          sbom: true
+          provenance: mode=max
+      - uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-name: ${{ steps.image.outputs.name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+      - name: Create a draft release for final review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          IMAGE_NAME: ${{ steps.image.outputs.name }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          uv run python tools/release_notes.py --tag "$RELEASE_TAG" --output .release-work/release-notes.md
+          printf '\nImage / 镜像: `%s@%s`\n' "$IMAGE_NAME" "$IMAGE_DIGEST" >> .release-work/release-notes.md
+          printf '%s\n' "$IMAGE_NAME@$IMAGE_DIGEST" > .release-work/assets/image-digest.txt
+          (cd .release-work/assets && sha256sum image-digest.txt >> SHA256SUMS)
+          gh release create "$RELEASE_TAG" .release-work/assets/* --verify-tag --draft --prerelease \
+            --title "OpenNoteLM $RELEASE_TAG" --notes-file .release-work/release-notes.md

@@ -1,0 +1,33 @@
+name: Model compatibility / 模型兼容性
+description: Report a model capability or protocol issue. / 报告模型能力或兼容接口问题。
+body:
+  - type: markdown
+    attributes:
+      value: Do not share raw requests/responses, secrets, private URLs or sources; compatible APIs can have different capabilities. / 不提交原始请求/响应、密钥、私有地址或原文；接口兼容不代表模型能力一致。
+  - type: input
+    id: version
+    attributes:
+      label: OpenNoteLM version / 版本
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: Provider software/version and model ID / 服务版本与模型名称
+      description: Share public names only. / 仅提供公开产品及模型名称。
+    validations:
+      required: true
+  - type: dropdown
+    id: capability
+    attributes:
+      label: Affected capability / 受影响能力
+      options: [Text or JSON / 文本或结构化输出, Vision or OCR / 看图或文字识别, Embeddings / 向量, Image generation / 生图]
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Capability test result and safe error code / 能力测试结果与安全错误码
+      description: Include stage, HTTP status and a synthetic sample; remove secrets. / 提供阶段、HTTP 状态和最小自写示例，移除敏感内容。
+    validations:
+      required: true
