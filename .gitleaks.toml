@@ -1,0 +1,16 @@
+title = "OpenNoteLM secret scanning"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+# Independently verified SHA-256 of the public source file, not a credential.
+# Both the exact manifest path and entire exact record must match.
+description = "Reviewed public secrets.py source checksum"
+condition = "AND"
+regexTarget = "line"
+paths = ['''(^|/)tools/container_runtime_review\.json$''']
+regexes = ['''^\s*"backend/opennotelm/secrets\.py":\s*"962b84be79ecc7446c5fe04216bb6621fdf90f7b070c46b62e66ebfc0cced6ed",?\s*$''']
