@@ -566,8 +566,9 @@ PUT。首次脚本初始化也按浏览器匹配，避免先显示固定中文�
 MIT自有代码保留远程原版权声明，贡献采用DCO、不转让版权。公开快照不携带私有开发
 历史；原分支完整保留。release_check检查公开文件/文档链接/许可与版本/锁定依赖清单，
 secret扫描只遍历Git可见文件及历史，排除生产data与私有报告。CI只读、Actions固定SHA。
-手动release任务依赖完整checks，验证实际标签提交，构建amd64/arm64镜像及SBOM/来源
-证明，创建中英文草稿预发布。源码/许可/原样MPL依赖源码附件含哈希与manifest。
+手动release任务依赖完整checks与发布环境批准，验证准确应用提交和不可移动标签；
+使用原生amd64/arm64机器分别构建，保留SBOM/来源证明，逐架构扫描与空白启动核验
+后按digest合并镜像，拒绝覆盖不同的已有镜像版本，创建中英文草稿预发布。源码/许可/原样MPL依赖源码附件含哈希与manifest。
 Compose支持OPENNOTELM_IMAGE固定镜像，缺省仍本地build；隔离验收强制本地镜像。
 Docker保留前端/Python/native/fonts许可，运行仍一个非root进程，不改用户数据、产物
 或模型契约。cryptography升级50.0.2仅安全依赖更新，Fernet/主密钥格式不变。

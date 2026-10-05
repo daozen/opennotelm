@@ -40,7 +40,7 @@ These are owner actions, not features automatically enabled by adding files:
    permissions, no privileged `pull_request_target` and no production/model secrets.
 4. Configure a `release` environment with the owner's approval before the release job.
    Approvals depend on GitHub account/repository support; do not assume the YAML sets them.
-5. Keep Actions token defaults read-only; the manual draft job alone requests writes.
+5. Keep Actions token defaults read-only; only the approved release jobs request their required writes.
 6. Add the repository description/topics and check security/contact links.
 7. Keep the GHCR package private during review if appropriate, then make it public
    for anonymous pulls when publishing. Verify both Linux architectures and attestations.
@@ -77,11 +77,16 @@ SBOM while preserving the raw scanner SBOM and all OS findings. See the bilingua
 After the public branch is reviewed/merged and actual GitHub CI passes, manually run
 **prepare-release** from protected `main`, supplying the release tag and exact reviewed
 40-character commit SHA. It verifies main ancestry and reruns checks on that commit.
-After release-environment approval, it creates an immutable annotated tag, builds amd64/arm64 versioned images with SBOM/provenance, records the
-digest and creates a **draft prerelease**. It does not auto-publish the Release.
+After release-environment approval, it creates or verifies the immutable annotated tag.
+Native Ubuntu amd64 and arm64 runners build separate images by digest, retain
+SBOM/provenance, scan each exact image and check startup with empty data. Only
+verified images are combined into a versioned manifest; an existing differing image
+version is never overwritten. The final job records the digest and creates a
+**draft prerelease**. It does not auto-publish the Release.
 已合并且检查通过后，从受保护的 main 手动运行 prepare-release，填写版本标签和
 已审查提交的完整 SHA。流程复验该提交，经发布环境批准后创建不可移动的附注标签，
-构建双架构镜像并创建发布草稿。已有匹配标签可继续；不覆盖现有发布或移动标签。
+在两个原生架构机器分别构建、扫描和验证，再合并镜像并创建发布草稿。已有匹配标签可继续；
+不覆盖现有发布、不同的镜像版本或移动标签。
 
 The first-Beta body is bilingual, with documentation links converted to version-pinned
 repository URLs; check its GitHub preview, attachments and image pulls.
@@ -107,3 +112,10 @@ high/critical findings fail, including unfixed entries. Exact vendor fixes and c
 supported-runtime decisions require independent probes, matching source/policy hashes
 and package versions, and expire on November 4, 2026. New/drifted findings do not inherit
 decisions. Reports stay in the ignored local directory, without mounted user data.
+
+Use native runners for browser/runtime probes; QEMU cross-build execution is not
+a substitute for native verification. Runner mapping follows the
+[GitHub runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
+and the [Docker distributed-build guidance](https://docs.docker.com/build/ci/github-actions/multi-platform/).
+The workflow may be updated independently of an already reviewed release target;
+source archives, image labels and tags still identify that exact application commit.
