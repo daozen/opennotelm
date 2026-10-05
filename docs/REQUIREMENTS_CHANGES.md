@@ -1,9 +1,8 @@
 # 相对于原始 v0.1 的需求与设计变更
 
-更新日期：2026-10-04；代码范围：`769f463` 基础及 decisions 030–035 增量。
 这里汇总用户的后续要求与实际设计调整，避免把增量决策散落在聊天或历史 ADR 中。
 当前完整契约为 [PRD](PRD.md) 和 [SYSTEM_DESIGN](SYSTEM_DESIGN.md)，
-原始文本保存在 [archive/v0.1](archive/v0.1/README.md)，阶段记录见 [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md)。
+原始文本保存在 [archive/v0.1](archive/v0.1/README.md)，能力范围见 [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md)。
 
 ## 1. 文档与决策优先级
 
@@ -13,7 +12,7 @@
 4. 实施/验收记录用于证明具体版本实际做过哪些验证。
 5. 原始 v0.1 文档及旧阶段是历史基线，不覆盖后续授权的变更。
 
-此更新不增加云账户、Agent、PPTX 等未授权范围，不自动宣布正式发布或变更软件版本。
+云账户、Agent、PPTX 等不在当前范围。
 既有原稿保留；新行为原则上用于新建/明确的副本操作，停止后继续不自动升级历史产物。
 
 ## 2. 变更矩阵
@@ -49,7 +48,7 @@
 | C25 | 有队列 retry，但用户不能稳定停止/继续与删除所有 Deck | queued/running 停止、原 job/payload 恢复、停止状态跨重启；任意 Deck 删除、文件归属清理和 batch tombstone | 已实现；[014](decisions/014-deck-controls-and-preview.md) |
 | C26 | 缩略图长列表推走大图；剩余高度在平板过小 | 独立滚动、约一屏高/520px 下限、响应式全宽、专注预览与焦点/Escape/前后页 | 已实现；[010](decisions/010-direct-content-and-concurrent-pages.md)、[014](decisions/014-deck-controls-and-preview.md) |
 | C27 | 新规则容易直接影响历史产物，旧副本复用不明确 | 老产物冻结；视觉副本保留文字出处而重选风格，标准重写副本刷新理解；非标准删页保护序列 | 已实现；[008](decisions/008-whole-page-image-generation.md)、[015](decisions/015-user-directed-deck-interpretation.md)、[016](decisions/016-content-adaptive-deck-style.md)、[017](decisions/017-automatic-parent-work-context.md) |
-| C28 | Docker 目标已定义但开发环境最初缺 runtime；访问只给本地链接 | Colima/Docker 环境与生产容器验收工具；可信 LAN 可配置 bind/Host，公网远程访问仍无内置认证方案 | 已实现部署工具与历史验收；[DOCKER_ACCEPTANCE](DOCKER_ACCEPTANCE.md)。026 增量的完整 Docker 复验已通过，见 ACCEPTANCE |
+| C28 | Docker 目标已定义但开发环境最初缺 runtime；访问只给本地链接 | Colima/Docker 环境与生产容器验收工具；可信 LAN 可配置 bind/Host，公网远程访问仍无内置认证方案 | 已实现部署工具；[DOCKER_ACCEPTANCE](DOCKER_ACCEPTANCE.md) |
 | C29 | 一般 job/error diagnostics | 每次生成的安全阶段/attempt/耗时/字段路径/token metadata，并行 ContextVar 隔离；全局 100 次、单 Deck 500 次，UI 支持失败详情/历史/刷新/下载 | 已实现；[020](decisions/020-deck-generation-reliability.md)、[021](decisions/021-deck-art-repair-and-failure-details.md)。不导出原文/提示/响应/凭据 |
 | C30 | art 仅反馈首个失败，作者修复总是整页输出 | art 多规则预检、有路径局部修复/无路径完整修复；布局归一化支持各语言，重复定位超限页面、保留有效编排，诊断去重并显示安全计数；作者按修改范围选择 patch 或完整单页 | 已实现；[021](decisions/021-deck-art-repair-and-failure-details.md)、[028](decisions/028-multilingual-art-layout-validation.md)，严格出处与表达支持约束保留 |
 | C31 | 桌面三栏与两种语言 | 小屏幕分区、弹窗键盘、操作层级、清楚状态、12种语言与RTL | 已实现；[UI_REVIEW](UI_REVIEW.md)、[022](decisions/022-ui-review-and-common-languages.md) |
@@ -81,37 +80,32 @@ Source/CitationSpan 是事实追溯、索引可重建、API 密钥加密/环境�
 - 原图精确嵌入/图表保真：当前最终页重绘。
 - 自动检查图片中文字与文字稿、数字、图表一致性：尚未实现。
 - 真实解读深度、跨主题风格和模型幻觉的全面质量验证：只有具体样本，需持续评价。
-- 后续改动仍需对应容器复验；本次026已通过完整Docker、重启与重建验收，证据见ACCEPTANCE。
 - `.doc`、鉴权/公网共享、PPTX、联网研究与自动 Agent：仍在范围外，不能借文档更新实现。
 
 ## 5. 后续如何更新
 
 变更需求时同时修改 PRD 对应行为、SYSTEM_DESIGN 实际契约和本矩阵；
 关键取舍新增有序 decision，写明哪些旧口径被取代、兼容策略和验证。
-IMPLEMENTATION_PLAN 只记录实施/发布状态；ACCEPTANCE 记录具体版本和真实证据。
+IMPLEMENTATION_PLAN 整理能力与后续方向；ACCEPTANCE 提供验证范围，具体结果记录在对应 PR。
 原始归档不要改，避免丢失最初需求；旧 ADR 保留历史正文，在文件顶部加入取代提示。
 如果是未来建议，单列 pending，不混入已完成行为。HANDOFF 的测试/入口/运行步骤应随代码维护。
 
-## C43 — Public MIT Beta (036)
+## C43 — MIT distribution (036)
 
-用户选择先以MIT公开，完善全部发布准备，并要求发布相关说明中英文。
-已准备公开文档/规则/合成演示、许可清单与原文、版本和镜像草稿流程、安全/版本/隐私
-文件检查；运行与数据契约不扩展。公开snapshot接续远程LICENSE-only main，私有原历史
-保留。平台设置、实际GitHub CI、镜像公开和Release发布需要独立确认与验证，不因本地
-准备或旧验收视为已完成。详见RELEASING与ACCEPTANCE Stage52。
+采用 MIT，中英文公开说明与贡献/DCO 规则、依赖许可及对应源码附件、版本化发布检查。
+公开代码不包含私人数据和开发祖先历史；运行及数据契约保持。维护流程见 RELEASING。
 
-## C44 — Native XML and container release review (037)
+## C44 — Native XML and container review (037)
 
-沿用用户授权的发布准备，纠正Python包审计未覆盖内置底层库的缺口。Docker重建锁定
-lxml并固定新XML/XSLT源码哈希、核对实际加载版本，许可与对应源码进入附件；应用
-权限删除、初始化只保留CHOWN。原生uv sync、现有应用和用户数据不变，系统包高危/
-严重项仍严格阻止发布，详见037、CONTAINER_SECURITY_REVIEW与ACCEPTANCE Stage53。
+Docker 重建锁定 lxml，固定 XML/XSLT 来源哈希并验证实际库；保留许可与源码附件。
+应用删除额外权限，初始化仅保留 CHOWN。原生 uv sync 不继承镜像替换。
 
-## C45 — Hosted checks and exact container applicability (038)
+## C45 — Hosted release gates and runtime applicability (038)
 
-用户进一步授权完成上传、实际GitHub检查及通过后的首个中英文Beta发布。公开PR接续
-原LICENSE提交，不上传私有开发祖先。后端/前端/容器分别检查；只将测试等待5秒扩大到
-30秒，不放松产品校验。容器固定兼容厂商补丁、限制CPU绘制并移除管理工具，准确版本、
-运行代码、权限及组件条件由探针核查；原始漏洞记录保留，新记录/版本漂移/复核到期和
-未解决高危仍失败。账号登录是仓库设置/发布页面的实际前置条件，不再泛泛重复询问
-发布授权。详见038和ACCEPTANCE Stage54。
+发布必须通过独立后端、前端、容器与规范检查。镜像固定厂商补丁，采用 CPU 绘制并
+移除受影响管理工具；探针核对准确版本、代码、权限和组件条件。原始扫描保留，新漏洞、
+变化、证据缺失、复核到期及未解决高危仍阻止发布，详见容器安全核查。
+
+Deck 输出语言修正：目标语言直接贯穿理解、brief、叙事规划、逐页写作和结构修复；
+源文、旧稿和美术描述不能改变输出语言。明确要求双语时保留，不增加文字体系强制
+校验/翻译/重试，原文与旧 Deck 不自动重写。详见 [039](decisions/039-deck-output-language.md)。

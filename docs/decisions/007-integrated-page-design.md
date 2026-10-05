@@ -89,8 +89,5 @@ consistent visual language, clear reading order and readable type. Inspect final
 PDF pages as well as application previews. Passing fixture tests alone cannot
 establish equivalence to NotebookLM or justify a claim of visual parity.
 
-On 2026-10-02 the user chose whole-page image generation, including text, as the
-next default. This native pipeline remains supported for saved Decks. Its real
-15-page trial completed 14 renders with one design failure; the output exposed
-empty-circle diagrams and a connector crossing body copy. It was not accepted as
-equivalent to the references. See decision 008 for the new generation direction.
+Whole-page image generation supersedes this native pipeline as the default.
+Saved native Decks remain supported; see decision 008.

@@ -21,5 +21,6 @@ container release gate or authorize publication of an unresolved candidate.
   conditional reachability are distinct claims; no blanket suppression or automatic
   severity downgrade. See [review](../CONTAINER_SECURITY_REVIEW.md).
 
-Functional/security evidence is recorded in ACCEPTANCE Stage53. Existing production
-services and live user data are excluded from verification and are not upgraded.
+Verification uses the [acceptance procedure](../ACCEPTANCE.md) and
+[container security gate](../CONTAINER_SECURITY_REVIEW.md). Native uv sync does
+not inherit the Docker-specific library replacement.

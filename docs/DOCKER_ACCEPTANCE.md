@@ -1,12 +1,12 @@
 # Docker acceptance
 
 This check builds the production image and serves its production frontend/API.
-The existing application on port 3000 and its `data/` are not used. A temporary
+Existing application instances and their data are not used. A temporary
 `.docker-acceptance-data.*` directory and port 4303 isolate all test data.
 
 ## Runtime on Apple Silicon macOS
 
-This host uses Docker Engine in [Colima](https://colima.run/docs/installation/).
+Apple Silicon users can run Docker Engine in [Colima](https://colima.run/docs/installation/).
 Install and start it with:
 
 ```sh
@@ -84,23 +84,12 @@ For trusted LAN access set `OPENNOTELM_BIND_ADDRESS=0.0.0.0` and add the machine
 LAN address to `ALLOWED_HOSTS`; both settings are passed through Compose.
 
 Inside a container, a model service running on the Mac must use a host address
-such as `http://host.docker.internal:8317/v1`, rather than `localhost`. On this
-Colima host the name resolves to the host gateway. Re-test and save the endpoint
+such as `http://host.docker.internal:8000/v1`, rather than `localhost`. Verify that the name resolves to your host gateway. Re-test and save the endpoint
 in model settings after changing it; the existing saved key can be reused.
 
-## Recovering a stale Colima VM
+## Runtime troubleshooting
 
-On 2026-10-02 the macOS virtualization driver reported “The virtual machine is no
-longer live” while Docker and `colima status` hung. A normal stop was attempted
-with a 45-second bound. After it timed out, the stale instance was stopped and
-restarted without deleting the virtual disk:
-
-```bash
-LIMA_HOME="$HOME/.colima/_lima" limactl stop --force colima
-colima start
-```
-
-Use this recovery only after checking the VM logs and considering workloads on
-that instance. It restarts its containers; the separately running native app is
-unaffected. The original Docker context, configuration, disks and images were
-retained. Run the acceptance driver again against the current source after recovery.
+If the Docker daemon is unavailable, inspect its status and VM logs. Check for
+other running workloads before restarting Docker or its VM. Preserve disks and
+configuration; do not delete the VM to repair an acceptance failure. Re-run the
+isolated acceptance procedure after restoring the runtime.

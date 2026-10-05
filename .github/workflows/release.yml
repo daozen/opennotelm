@@ -3,7 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Reviewed existing tag, for example v0.1.0-beta.1
+        description: Immutable release tag, for example v0.1.0-beta.1
+        required: true
+        type: string
+      commit:
+        description: Exact reviewed 40-character commit SHA on main
         required: true
         type: string
 permissions:
@@ -12,12 +16,37 @@ concurrency:
   group: release-${{ inputs.tag }}
   cancel-in-progress: false
 jobs:
+  target:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.reviewed.outputs.commit }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.commit }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.12.6'
+          python-version: '3.12'
+      - name: Validate protected-main release target
+        id: reviewed
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        run: |
+          uv sync --locked
+          uv run python tools/release_target.py --commit "$RELEASE_COMMIT" --tag "$RELEASE_TAG"
+          printf 'commit=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
   checks:
+    needs: target
     uses: ./.github/workflows/ci.yml
     with:
-      ref: ${{ inputs.tag }}
+      ref: ${{ needs.target.outputs.commit }}
   draft:
-    needs: checks
+    needs: [target, checks]
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -28,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ needs.target.outputs.commit }}
           fetch-depth: 0
           persist-credentials: false
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
@@ -38,17 +67,24 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
-      - name: Validate exact tag and prepare source/notices
+      - name: Validate reviewed commit and prepare source/notices
         id: reviewed
         env:
           RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ needs.target.outputs.commit }}
         run: |
           uv sync --locked
           uv run python tools/release_check.py --tag "$RELEASE_TAG"
-          test "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+          uv run python tools/release_target.py --commit "$RELEASE_COMMIT" --tag "$RELEASE_TAG"
           printf 'commit=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           npm ci --ignore-scripts --prefix frontend
           uv run python tools/build_release.py --tag "$RELEASE_TAG"
+      - name: Create or verify immutable annotated tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ needs.target.outputs.commit }}
+        run: uv run python tools/release_target.py --commit "$RELEASE_COMMIT" --tag "$RELEASE_TAG" --create-tag
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3

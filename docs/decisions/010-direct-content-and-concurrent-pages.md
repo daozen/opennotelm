@@ -44,11 +44,3 @@ remaining pane space. High-resolution originals still open from the image link;
 transcripts, citations and page actions remain accessible by scrolling the right
 pane. Narrative/style/visual-plan details are collapsed initially. On small screens
 the thumbnail rail scrolls horizontally. All added controls are bilingual.
-
-Real-provider comparison used identical saved prompts for pages 2 and 15 of the
-existing authorized source: serial 82.403 seconds versus two concurrent requests
-45.893 seconds (44.3% lower elapsed time, about 1.8× throughput). All four images
-were valid 1672×941 PNGs. This is one two-page comparison, not a performance
-guarantee for longer Decks or other providers. Visual inspection caught an extra
-author/metaphor caption; the strengthened authoring check rejected that addition,
-and a final two-page generation was manually checked against its saved text.

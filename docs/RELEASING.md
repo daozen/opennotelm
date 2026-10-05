@@ -74,13 +74,15 @@ SBOM while preserving the raw scanner SBOM and all OS findings. See the bilingua
 
 ## Draft and publish
 
-After the public branch is reviewed/merged and actual GitHub CI passes, create an
-annotated, reviewed tag on that commit. Use `git tag -s` if a signing identity is
-configured; otherwise an annotated tag is still required. Never move a released tag.
-
-Manually run **prepare-release** with that tag. It reruns checks, validates the exact
-tagged commit, builds amd64/arm64 versioned images with SBOM/provenance, records the
+After the public branch is reviewed/merged and actual GitHub CI passes, manually run
+**prepare-release** from protected `main`, supplying the release tag and exact reviewed
+40-character commit SHA. It verifies main ancestry and reruns checks on that commit.
+After release-environment approval, it creates an immutable annotated tag, builds amd64/arm64 versioned images with SBOM/provenance, records the
 digest and creates a **draft prerelease**. It does not auto-publish the Release.
+已合并且检查通过后，从受保护的 main 手动运行 prepare-release，填写版本标签和
+已审查提交的完整 SHA。流程复验该提交，经发布环境批准后创建不可移动的附注标签，
+构建双架构镜像并创建发布草稿。已有匹配标签可继续；不覆盖现有发布或移动标签。
+
 The first-Beta body is bilingual, with documentation links converted to version-pinned
 repository URLs; check its GitHub preview, attachments and image pulls.
 

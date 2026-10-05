@@ -26,7 +26,7 @@ directory and encryption master key before upgrading; one process owns each dire
 Prebuilt images are usable after publishing and making the GHCR package public.
 Use the recorded version/digest. Source, dependency notices, unmodified file-copyleft
 dependency sources and checksums are attached. Container SBOM/provenance is attached
-to the image manifest. This draft is not a public-release announcement.
+to the image manifest.
 
 ## 简体中文
 
@@ -48,4 +48,3 @@ to the image manifest. This draft is not a public-release announcement.
 
 镜像需在版本发布且 GHCR 包公开后才能使用，请固定记录的版本/digest。
 附件含源码、依赖声明、原样文件级 copyleft 依赖源码与校验值；镜像清单带 SBOM/来源证明。
-此草稿不代表已公开发布。

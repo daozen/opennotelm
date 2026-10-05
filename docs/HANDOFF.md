@@ -1,19 +1,15 @@
-> Public documentation: machine-specific paths, private example names and addresses have been removed. Historical results retain their original scope; private operational copies are not included. / 公开文档已去除本机路径、私有示例名称与地址；保留历史验证范围，私有操作记录不随仓库发布。
-
 # Coding agent 接手手册
 
-更新日期：2026-10-05。实现范围：`769f463` 基础及 decisions 030–038 增量；初次整理时分支 `feat/v0.1`，软件版本 `0.1.0`。
-分支名、PID、模型服务和内网 IP 都是环境状态；接手先实际检查，不依赖这些快照。
 本文可直接作为后续 coding agent 的仓库入口，配合根目录 [AGENTS](../AGENTS.md)。
 
 ## 1. 先建立上下文
 
-建议按此顺序读取，通常无需先读全部历史验收或整个聊天记录：
+建议按此顺序读取，通常无需先读全部历史决策：
 
 1. [当前需求](PRD.md)：用户目标、支持范围、默认行为、硬约束与开放项。
 2. [需求差异](REQUIREMENTS_CHANGES.md)：原始 v0.1 哪些已被后续要求取代。
 3. [当前设计](SYSTEM_DESIGN.md)：数据、流程、模块、缓存、版本和 API。
-4. [实施/验证状态](IMPLEMENTATION_PLAN.md)：已做什么、证据到哪里、剩余哪些发布门槛。
+4. [实施/验证状态](IMPLEMENTATION_PLAN.md)：能力范围与后续方向。
 5. 本文的运行、修改入口、故障排查和数据操作。
 6. 当前任务相关的 `docs/decisions/` 文档及对应测试；必要时再查 [ACCEPTANCE](ACCEPTANCE.md)。
 
@@ -32,10 +28,9 @@
 发布准备还应读取[容器安全核查](CONTAINER_SECURITY_REVIEW.md)和[状态](RELEASE_STATUS.md)。
 Docker对锁定lxml重编译底层XML库，最终uv sync后必须保留替换；不能以pip包审计通过
 推断内置库或OS库安全。Compose应用删除全部额外权限，初始化仅保留CHOWN。原生
-uv sync不获得镜像替换；当前生产环境未升级。038补充准确厂商补丁、CPU服务及条件化
+uv sync不获得镜像替换；038补充准确厂商补丁、CPU服务及条件化
 安全核查。原始扫描记录不删除；仅已核查的准确版本/运行条件可归类，代码/锁文件/
-包版本变化或2026-11-04到期需要重新审查，不得仅重算哈希绕过。云端及双架构的真实
-状态以RELEASE_STATUS为准，不能把本地门禁通过等同于已发布。
+包版本变化或2026-11-04到期需要重新审查，不得仅重算哈希绕过。云端及双架构验证以对应版本的 Actions 结果为准，不能把本地门禁通过等同于已发布。
 
 ## 2. 工作前检查
 
@@ -47,7 +42,7 @@ git log -5 --oneline
 
 保留其他人的未提交改动；围绕当前分支的任务继续，必要的新分支默认 `codex/` 前缀。
 不要重置现有用户数据，不把 `.env`、密钥、原文、生成图片或数据库提交进 Git。
-本工作区 `data/` 有真实用户资料，曾由独立本地服务在 `127.0.0.1:3000` 使用。
+`data/` 可能含真实用户资料。
 先检查端口/启动方式/任务状态；不要为了测试停掉或接管这个实例。
 
 `data/instance.lock` 是 flock 锁，文件存在不等于正在运行，删除它也不是安全解锁方法。
@@ -124,15 +119,9 @@ npm run test:e2e
 修改 UI 时能定向 `npm run test:e2e -- e2e/<文件>.spec.ts`。
 不要把 mocks 的视觉图片当成真实模型效果，也不要静默跳过失败流程。
 
-#### macOS 浏览器启动检查（2026-10-04）
+#### macOS 浏览器启动检查
 
-真实浏览器检查应在普通终端或允许启动进程/本地监听端口的已授权测试命令中运行。
-本机曾在受限 agent 环境连续启动系统 Chrome，出现五份 `_RegisterApplication`/
-`TransformProcessType` SIGABRT 报告；结合执行记录，符合 macOS 应用注册受限的启动失败，
-不是 OpenNoteLM 服务退出。报告中的 Rosetta 不能单独证明架构是根因。
-此指导取代历史验收记录中“先在沙盒运行、失败后改用系统 Chrome”的流程。
-
-先检查（静态合成内容，不访问模型、生产资料或个人浏览器配置）：
+真实浏览器检查需允许本地监听与浏览器进程启动。先检查（静态合成内容，不访问模型、生产资料或个人浏览器配置）：
 
 ```sh
 uv run python tools/browser_check.py --repeat 3
@@ -186,6 +175,7 @@ Docker 成功过不等于当前 HEAD 已复验，不能用较早验收替代新�
 | 解读深度/硬标签/用户指令 | `deck_content.py`, `DeckService.preferences/understand/plan/author`, `synthesis.py` | `test_deck_interpretation`, `test_deck_content`, `test_deck_context` |
 | 全书背景 | `deck_context.py`, `decks.py`, `synthesis.py` | `test_deck_context`, `test_deck_source_visuals` |
 | 视觉风格/重复表达 | `deck_style.py`, `deck_art.py`, `generated_pages.py` | `test_deck_style`, `test_deck_art`, `test_generated_pages`; 真实跨题材图像检查 |
+| Deck 语言混入 | `deck_language.py`、`decks.py`、`languages.py` | `test_deck_language`、`test_output_languages`；每阶段直接指定语言，不增加强制文字体系校验 |
 | 模型结构输出失败 | `structured.py`, `output_repair.py`, `deck_validation.py`, `generation_attempts.py`, `deck_diagnostics.py` | `test_structured`, `test_output_repair`, `test_generation_attempts`, `test_synthesis` |
 | 并发/停止/继续 | `concurrency.py`, `request_limits.py`, `jobs.py`, `task_settings.py`, 三项 `*_settings.py`, `decks.py`, `source_vision.py` | `test_parallel_jobs`, `test_deck_content_concurrency`, `test_deck_lifecycle`, `test_source_vision_concurrency`; `deck-lifecycle`, `model-settings` E2E |
 | 删页/改单页/导出 | `revisions.py`, `pdf_export.py`, `generated_pages.py`, `maintenance.py` | `test_revisions`, `test_generated_pages`, `test_pdf_export`, `test_lifecycle`; `revisions`, `generated-pages` E2E |
@@ -227,14 +217,8 @@ Docker 成功过不等于当前 HEAD 已复验，不能用较早验收替代新�
 | 多份Deck未全部同时运行 | 任务总上限、同资料写入预约、同书首次read锁或共享阶段/服务额度；这些等待保护资源/事实，同来源读任务本身可并行 |
 | 不再生成“已完成”Deck | 正常冻结/复用；新算法用视觉优化或重写内容副本，不自动改历史稿 |
 
-增量（021）当时：354 后端、47 前端测试和两个相关 browser flow 通过。
-按 Deck 报告、art 多规则反馈与作者 auto repair 入口已更新；后续完整容器复验见阶段40。
-
-最近修复案例与证据在 [decision 020](decisions/020-deck-generation-reliability.md)、
-[decision 021](decisions/021-deck-art-repair-and-failure-details.md)
-和 ACCEPTANCE 的 `Deck generation reliability — 2026-10-03`。
-`private-example-A` 两章的规划及六个样本页验证通过；`private-example-B` 的 69 图/18 分段理解、最后一页修复、
-10 页整套生图与 PDF 下载成功。它们是样本证据，不是总体失败率承诺。
+诊断与修复契约见 [020](decisions/020-deck-generation-reliability.md) 和
+[021](decisions/021-deck-art-repair-and-failure-details.md)。
 
 ## 6. 缓存和兼容性：不要随便清空
 
@@ -281,23 +265,11 @@ Embedding切换：032的`embedding_identity.py/index_rebuild.py`维护兼容签�
 资料 unlink 不同于永久 delete。永久资料删除保留历史内容/引用身份但标不可用；
 Deck delete 先取消任务，事务删除其自有数据，持久文件清理由 maintenance 恢复。
 
-2026-10-04 用户另行授权清理批量无损优化后被替代的37份旧 Deck PDF；只删除私有批次
-清单中的旧 `pdf_exports` 行及对应目录，不是自动回收策略，也不包括资料原件或页图。
-这37份旧下载/预览链接已返回404，新版继续可用。停服清理前的完整当前数据与逐项清单在
-`<private-verification-path>`，恢复时须先检查当前业务变更，不能直接
-用清理前全库覆盖后续工作。执行与校验证据见[验收记录](ACCEPTANCE.md) Stage47。
 不要手动删除共享 source 文件、用 SQL cascade 模拟产品删除或替换 secret 主密钥。
 
-## 8. 发布状态与下一步可选工作
+## 8. 后续可选工作
 
-已实现的范围和历史验证见 [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md)。
-阶段 37 验证：354 后端、47 前端和两条相关 browser flow；
-真实失败 Deck 重试 185.6 秒完成剩余生成，保留 20 页文字并导出 20 页 PDF。
-此前 private-example-B 及六个相关 flow 的证据仍按自身日期和版本保留。
-阶段40已通过415后端、59前端测试及完整生产镜像验收：首次配置、27条浏览器流程、
-进程重启与容器重建完整性检查。末次下载缓存/顺序调整另通过52项相关后端回归，
-并在最终镜像通过正向图片保存测试。真实网页下载验证不包含真实模型识别质量；
-详细范围见ACCEPTANCE最新记录。软件仍为0.1.0，未由此宣称正式版本已发布。
+当前范围见 [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md)，验证流程见 [ACCEPTANCE](ACCEPTANCE.md)。
 
 后续候选（需由具体用户任务确定，不自动扩范围）：
 
@@ -348,7 +320,7 @@ Synthesis及checkpoint均覆盖语言；已有知识更新保留页metadata语�
 系统资料不足提示以typed status本地化，不改写历史消息/用户内容；原文引用不可翻译。
 定向测试为test_output_languages.py、Chat.test.tsx及output-languages E2E。
 
-本轮交互清单：[UI_REVIEW](UI_REVIEW.md)、decision022。重要入口为Modal.tsx、Workspace.tsx、languages.ts、i18n.ts和12套locales JSON。新模态窗口使用Modal包裹语义dialog并给出onClose/busy；保持原有未保存保护。不要把小屏幕分区改为条件卸载，否则会丢草稿。新翻译键必须同步全部语言及变量；语言目录与后端PreferencesInput保持一致。阿拉伯语检查html dir、逻辑CSS间距、原文dir=auto和图像不镜像。测试入口为ui-review E2E、Modal/i18n单测和preferences后端测试；详见INTERNATIONALIZATION。
+交互维护清单：[UI_REVIEW](UI_REVIEW.md)、decision022。重要入口为Modal.tsx、Workspace.tsx、languages.ts、i18n.ts和12套locales JSON。新模态窗口使用Modal包裹语义dialog并给出onClose/busy；保持原有未保存保护。不要把小屏幕分区改为条件卸载，否则会丢草稿。新翻译键必须同步全部语言及变量；语言目录与后端PreferencesInput保持一致。阿拉伯语检查html dir、逻辑CSS间距、原文dir=auto和图像不镜像。测试入口为ui-review E2E、Modal/i18n单测和preferences后端测试；详见INTERNATIONALIZATION。
 
 ## 资料导入增量（023）
 
@@ -372,14 +344,11 @@ Word basedOn 错误已修复，不再用 defusedxml 构造接口。机制/取舍
 投影，不改原始事实。旧Deck及副本保留旧名称，无迁移；PDF下载自然沿用当前名称。
 生成弹窗说明同步12种语言，设计取舍见[027](decisions/027-chapter-deck-source-names.md)。
 
-## Public release preparation (036)
+## 公开发布维护
 
-README中英文和公开说明从docs/README入口进入。发布准备见RELEASING与036，
-当前仍MIT/0.1.0、首个候选v0.1.0-beta.1，不增加收费/账户/公网鉴权。
-维护依赖后刷新DEPENDENCIES.json并核对许可；CI校验锁文件与清单，不能仅修改版本。
-测试/发布需独立环境，本轮没有修改运行中实例的venv或重启生产。GitHub首发采用干净
-公开快照，原始本地历史及私有操作文档保留在发布范围之外；禁止直接推送私有开发分支。
-
-本轮发布状态见 [RELEASE_STATUS](RELEASE_STATUS.md)：公开源码已上传 PR 1，真实云端后端、前端及 amd64 容器验收/条件化安全门禁已通过；精确校验值误报修复另需云端复验。所有者设置及版本化发布仍待完成。公开分支为 `codex/public-beta`，禁止把私有准备分支连同原历史一起推送。
+中英文公开文档从 [docs/README](README.md) 进入，发布流程见 RELEASING。
+维护依赖后刷新 DEPENDENCIES.json，核对许可、源码附件及实际底层库；不能仅修改版本号。
+发布源码必须来自已审核的公开提交，不上传私有开发分支或祖先历史。发布检查和产物
+需对应同一提交，维护者通过受保护分支与发布环境执行。
 
 密钥扫描继承 Gitleaks 全部默认规则，仅允许 `container_runtime_review.json` 中已核对的准确 secrets.py 文件 SHA-256 记录；必须同时匹配文件路径和完整记录。真实或其他疑似密钥继续拒绝，脚本在扫描前验证三个负向合成用例。仅输出失败阶段，不把检测内容写入 CI 日志；完全脱敏报告留在本地。源码校验值变化须复核，不能扩大到全文件忽略。

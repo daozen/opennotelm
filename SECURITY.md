@@ -22,7 +22,7 @@ Reports are handled on a best-effort basis; there is no guaranteed response SLA.
 
 ## Supported versions
 
-The project is preparing its first public 0.1 Beta. Security fixes target the latest
+OpenNoteLM is a Beta application. Security fixes target the latest
 published Beta; older snapshots have no promised backports. Release status is in
 [CHANGELOG](CHANGELOG.md) and [GitHub Releases](https://github.com/daozen/opennotelm/releases).
 Update only after backing up the complete data directory and encryption key.

@@ -1,7 +1,6 @@
 # 文档入口
 
-本目录分为当前契约、接手操作、验证记录和历史决策。
-2026-10-03 已把后续用户要求合并到主 PRD/设计；原始 v0.1 不再作为当前功能限制。
+本目录分为使用指南、当前契约、接手操作、验证方法和设计决策。
 
 ## Public documentation / 公开使用与发布文档
 
@@ -11,7 +10,7 @@
 - Licensing / 许可商业使用：[English](LICENSING.md) · [简体中文](LICENSING.zh-CN.md)
 - Release checklist / 发布清单：[English](RELEASING.md) · [简体中文](RELEASING.zh-CN.md)
 - [Bilingual first-Beta notes / 中英文首发文案](releases/first-beta.md)
-- [Preparation status / 发布准备状态](RELEASE_STATUS.md)
+- [Release information / 版本信息](RELEASE_STATUS.md)
 - [Dependency inventory / 锁定依赖清单](DEPENDENCIES.json)
 
 ## 新 coding agent 的阅读顺序
@@ -20,14 +19,14 @@
 2. [PRD](PRD.md)：当前需求与范围，含已取代的默认行为和仍未实现项。
 3. [需求差异](REQUIREMENTS_CHANGES.md)：逐项对比原始 v0.1 与后续要求。
 4. [SYSTEM_DESIGN](SYSTEM_DESIGN.md)：实际架构、数据、生成链路、缓存/版本/并发和 API。
-5. [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md)：已交付、验证到的范围及发布余项。
-6. 当前任务相关的下列专题/决策，最后再查完整历史验收。
+5. [IMPLEMENTATION_PLAN](IMPLEMENTATION_PLAN.md)：能力范围与后续方向。
+6. 当前任务相关的下列专题/决策，验证时参考验证指南。
 
 仓库级工程约束见 [AGENTS](../AGENTS.md) 和 [CONTRIBUTING](../CONTRIBUTING.md)。
 
-## 专题与证据
+## 专题与验证
 
-- [ACCEPTANCE](ACCEPTANCE.md)：历史逐阶段记录，包含失败/限制与真实样本，不是单一当前规范。
+- [ACCEPTANCE](ACCEPTANCE.md)：检查范围、复验方法与真实模型质量边界。
 - [DOCKER_ACCEPTANCE](DOCKER_ACCEPTANCE.md)：隔离生产镜像验收、宿主模型地址、运行环境恢复。
 - [UI_REVIEW](UI_REVIEW.md)：系统界面/交互发现、改进与验证范围。
 - [INTERNATIONALIZATION](INTERNATIONALIZATION.md)：界面语言保存、草稿保持和翻译维护。

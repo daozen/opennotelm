@@ -17,6 +17,7 @@ from .deck_content import (
     check_source_content,
 )
 from .deck_context import WORK_CONTEXT_POLICY, WorkContextService, page_context
+from .deck_language import deck_language_instruction
 from .deck_schemas import (
     DeckBrief,
     DeckInput,
@@ -706,6 +707,7 @@ class DeckService:
                 source_context=self.source_context(deck, blocks),
                 preferences=preferences.model_dump(),
                 work_context=work,
+                output_language=deck["language"],
             )
             value = {
                 "content": content,
@@ -742,6 +744,7 @@ class DeckService:
                 + GROUNDING
                 + CONTENT_POLICY
                 + WORK_CONTEXT_POLICY
+                + deck_language_instruction(deck["language"])
                 + "Infer topic, goal and audience from the source and optional "
                 "user instruction. Preserve requested length and language. "
                 "The language field must contain the exact supplied language code, "
@@ -750,6 +753,7 @@ class DeckService:
                     "understanding": understanding["content"],
                     "slide_count": deck["target_slide_count"],
                     "language": deck["language"],
+                    "output_language": deck["language"],
                     "user_instruction": deck["instruction"],
                     "preferences": preferences.model_dump(),
                     "work_context": understanding.get("work_context", {}),
@@ -817,6 +821,7 @@ class DeckService:
                 + GROUNDING
                 + CONTENT_POLICY
                 + WORK_CONTEXT_POLICY
+                + deck_language_instruction(deck["language"])
                 + "Build an intentional learning sequence with exactly the "
                 "requested total number of pages. "
                 "Do not divide the document into equal slices or repeat a fixed slide pattern. "
@@ -869,6 +874,7 @@ class DeckService:
                 "essential qualifiers; omit side issues rather than shrinking typography.",
                 {
                     "brief": deck["brief"],
+                    "output_language": deck["language"],
                     "citable_evidence": catalog,
                     "understanding": understanding["content"],
                     "user_instruction": deck["instruction"],
@@ -1070,6 +1076,7 @@ class DeckService:
             + GROUNDING
             + CONTENT_POLICY
             + WORK_CONTEXT_POLICY
+            + deck_language_instruction(deck["language"])
             + "Follow the narrative purpose and deck-level style. Write "
             "succinct, readable semantic content in the requested language. "
             "Use varied semantic elements (statement, comparison, quote, "
@@ -1135,7 +1142,8 @@ class DeckService:
             "parent basis. Source facts and interpretations cite supplied evidence IDs; those "
             "IDs anchor an interpretation without implying it is literally stated. Background "
             "and invented examples MUST NOT carry or inherit source citations. Illustrative "
-            "examples are allowed, but phrase them as examples ('imagine', '比如') rather than "
+            "examples are allowed, but identify them as examples using the requested output "
+            "language rather than "
             "reported events or measurements. Quotes must be actual source content with basis "
             "source. Never fabricate numbers, quotations or references. basis is internal "
             "Only the evidence list supplies citable IDs for this page. The full dossier and "
@@ -1148,6 +1156,7 @@ class DeckService:
             "to this slide. Preserve its narrative purpose and the deck-wide style.",
             {
                 "brief": deck["brief"],
+                "output_language": deck["language"],
                 "user_instruction": deck["instruction"],
                 "preferences": preferences.model_dump(),
                 "narrative": deck["plan"]["narrative"],
