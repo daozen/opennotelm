@@ -57,3 +57,7 @@ there is no automatic language-identification call or script-based save gate.
 Deck 语言回归覆盖理解、规划、写作和结构修复的语言传递，并保留原文和引用；
 后端、前端和相关浏览器检查通过。实际服务语言准确性须在授权范围内调用模型验证，
 不增加语言识别调用或以文字体系作为保存门槛。
+
+Release images / 发布镜像：原生 amd64 和 arm64 各自构建，扫描推送后的准确 digest
+并使用空白数据核验启动；两项成功才合并版本镜像。模拟器内的 Chromium 运行不作为
+原生验收结果；保留安全探针和不可移动标签。以对应发布 Actions 的实际结果为准。

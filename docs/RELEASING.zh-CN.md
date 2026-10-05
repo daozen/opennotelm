@@ -28,7 +28,7 @@
    当前检查名称：release-contract、test、frontend、container，发布仍要求全部通过。
 3. 不信任的 fork 工作流需审批；PR 仅只读权限，不用 pull_request_target 或生产/模型密钥。
 4. 配置 release environment 的所有者审批，取决于账号/仓库支持，不能认为 YAML 已开启。
-5. Actions 默认只读，手动草稿任务才申请写权限；补简介、topics，验证报告入口。
+5. Actions 默认只读，获批准的发布任务按需申请写权限；补简介、topics，验证报告入口。
 6. 需要时审查期间保持 GHCR 私有，正式发布时设公开并验证匿名拉取、双架构与来源证明。
 
 ## 本地发布附件
@@ -56,8 +56,11 @@ uv run python tools/build_release.py --tag v0.1.0-beta.1
 
 公开分支审查合并、真实 GitHub CI 通过后，对确定提交创建带说明的标签；
 有签名身份时使用 `git tag -s`，否则用 annotated tag，不移动已发布标签。
-手动运行 prepare-release 并填标签，重新检查准确提交、生成双架构版本镜像与证明，
-记录 digest，创建**草稿预发布**，不会自动公开 Release。
+从受保护的 main 手动运行 prepare-release，填标签和已审查提交的完整 SHA。
+重新检查准确提交，经 release 环境批准后创建或核验不可移动的附注标签。
+amd64 与 arm64 使用各自原生机器构建，逐架构扫描准确镜像并用空白数据验证启动；
+全部通过后合并版本镜像与证明，记录 digest，创建**草稿预发布**。
+不覆盖已存在的不同镜像版本，不自动公开 Release。
 
 首发文案中英文齐全，链接自动转换为对应版本仓库 URL；在 GitHub 预览核对链接、附件、镜像。
 最终下载核对校验值、分别验证架构、
@@ -73,3 +76,8 @@ uv run python tools/build_release.py --tag v0.1.0-beta.1
 SBOM，另记实际修复/受支持运行条件/未解决项。未解决高危或严重项仍失败，包括无
 修复项目。准确厂商修复及配置适用性需实际探针、源代码/策略哈希和准确版本核对，
 2026-11-04到期，新发现/漂移不继承。报告留在本地忽略目录，不挂载用户资料。
+
+浏览器/运行时探针使用原生架构，QEMU 模拟执行不能替代真实架构验证。
+机器映射参考 [GitHub 官方说明](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
+和 [Docker 多机器构建说明](https://docs.docker.com/build/ci/github-actions/multi-platform/)。
+发布工作流可独立修复；源码包、镜像标签和版本标签仍对应已审查的准确应用提交。
