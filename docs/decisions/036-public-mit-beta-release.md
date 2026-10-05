@@ -1,7 +1,6 @@
 # 036 — Public MIT Beta preparation
 
-Date: 2026-10-04. Accepted user requirement: keep MIT, prepare publication thoroughly,
-and provide release-facing documentation in English and Chinese.
+Date: 2026-10-04. Status: accepted. Distribution uses MIT and bilingual release-facing documentation.
 
 This decision adds distribution/maintenance policy, not a hosted product. It does
 not supersede source/citation preservation, one data-owner process, consent rules,
@@ -28,7 +27,7 @@ existing artifact compatibility or earlier bounded concurrency decisions.
 - Upgrade cryptography from 48.0.1 to 50.0.2 after advisory verification. The app
   uses Fernet, not the affected PKCS7/X.509 APIs; this removes known package findings
   without changing stored-key formats. Intel macOS native wheels are no longer offered
-  upstream; document Docker as the preferred path. Production environment is untouched.
+  upstream; document Docker as the preferred path.
 
 - Candidate runtime uses supported Debian 13/Trixie with available system updates;
   removes unused pip and Xvfb tools. Complete built-in Chromium credits/terms are
@@ -37,6 +36,6 @@ existing artifact compatibility or earlier bounded concurrency decisions.
 
 ## Evidence and limits
 
-See ACCEPTANCE Stage52 for actual checks. Python/npm scans are not a full container
+See [verification guidance](../ACCEPTANCE.md). Python/npm scans are not a full container
 vulnerability or legal audit. Synthetic providers are not real-model quality evidence.
 GitHub settings, hosted CI and publishing are not established by writing these files.

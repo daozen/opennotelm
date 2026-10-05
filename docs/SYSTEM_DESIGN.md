@@ -1,6 +1,5 @@
 # OpenNoteLM 当前系统设计
 
-更新日期：2026-10-05；实现范围为 `769f463` 基础及 decisions 030–038 增量，migrations `001`–`019`。
 当前产品契约见 [PRD](PRD.md)，与原始 v0.1 的差异见 [需求变更](REQUIREMENTS_CHANGES.md)。
 [原设计](archive/v0.1/SYSTEM_DESIGN.md)保留用于历史对照，不能覆盖后续决策。
 这里描述实际结构与约束；后续任务的入口、验证和操作步骤见 [HANDOFF](HANDOFF.md)。
@@ -230,6 +229,10 @@ TransformationInput可选`language`，旧请求/已排队payload缺失或null保
 Workspace选择`interface | UiLanguage`，默认interface，仅保存在当前组件；提交时解析成
 具体代码，所有异步任务冻结payload，模型指令只由白名单语言名构造。
 新Deck继承该选择作为创建框初始值，仍可在创建框单独选择，不重写历史Deck。
+DeckInput 只接受12种语言代码。Deck 理解传入 output_language；brief/plan/author
+系统指令和输入显式携带语言。deck_language.py 统一说明可见文字与叙事字段的语言，
+源文、旧规划和内部美术描述不可改变输出语言，修复请求仍保留同一系统指令和语言。
+明确的双语/多语请求保留，不使用文字体系检测作为保存门槛，也不增加语言判别模型。
 Synthesis的分层压缩和最终输出均接收语言，prompt/system哈希纳入checkpoint身份；
 Chat上下文计数包含增加的语言指令，引用验证/修复和原文证据契约不变。
 生成metadata记录language，保存临时转换/问答为知识页时保留。Knowledge更新使用页
@@ -465,7 +468,7 @@ PDFium页栅格化仍保留进程内锁，整套art依赖全部文字、最终PD
 分别报告；PrivacySettings以PUT偏好返回为保存事实，未配置仍可勾选/关闭。
 捕获只在enabled时执行，未configured不发送；本地队列最多1000条且7天过期，关闭清空。
 12语言提示保存成功、未接入时本地暂存与不发送；不在成功PUT后额外GET导致保存误报。
-默认无项目token、默认不参与，本轮不增加接收服务或云账户。安装UUID用于匿名安装统计，
+默认无项目token、默认不参与，当前不包含接收服务或云账户。安装UUID用于匿名安装统计，
 不是个人/真实用户身份；接收方的网络日志与保留策略须在未来接入时单独明确，见033。
 
 ## 9. API 契约入口

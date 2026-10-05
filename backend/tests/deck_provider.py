@@ -7,6 +7,7 @@ import re
 def deck_completion(payload):
     system = payload["messages"][0]["content"]
     data = json.loads(payload["messages"][-1]["content"])
+    english = data.get("output_language", data.get("language")) == "en"
     if system.startswith("Resolve deck content preferences."):
         return {"source_only": False, "include_editorial_notes": False, "dense_text": False}
     if system.startswith("Art-direct the complete illustrated deck"):
@@ -135,9 +136,9 @@ def deck_completion(payload):
         return {"canvas": {"width": 1920, "height": 1080}, "layers": layers}
     if system.startswith("Create a DeckBrief."):
         return {
-            "topic": "时间与学习",
-            "goal": "理解长期学习如何积累",
-            "audience": "初学者",
+            "topic": "Time and learning" if english else "时间与学习",
+            "goal": "Understand cumulative learning" if english else "理解长期学习如何积累",
+            "audience": "Beginners" if english else "初学者",
             "language": data["language"],
             "slide_count": data["slide_count"],
             "content_principles": ["每页一个核心观点", "所有事实保留出处"],
@@ -145,16 +146,24 @@ def deck_completion(payload):
     if system.startswith("Plan the narrative"):
         refs = list(dict.fromkeys(re.findall(r"\[\[([^\]]+)\]\]", data["understanding"])))
         return {
-            "narrative": "从时间的价值，到持续实践，再回到个人行动。",
+            "narrative": "From time to practice and action."
+            if english
+            else "从时间的价值，到持续实践，再回到个人行动。",
             "slides": [
                 {
                     "index": index,
-                    "title": f"第 {index} 步：理解与实践",
+                    "title": f"Step {index}: Understand and practice"
+                    if english
+                    else f"第 {index} 步：理解与实践",
                     "role": "opening" if index == 1 else "explanation",
-                    "purpose": "帮助读者理解这个概念",
-                    "key_message": f"第 {index} 个角度：小的进步会随时间积累。",
+                    "purpose": "Explain this concept" if english else "帮助读者理解这个概念",
+                    "key_message": f"Perspective {index}: Small improvements accumulate."
+                    if english
+                    else f"第 {index} 个角度：小的进步会随时间积累。",
                     "evidence_ids": [refs[(index - 1) % len(refs)]],
-                    "teaching_points": ["解释积累与实践的关系"],
+                    "teaching_points": [
+                        "Connect accumulation and practice" if english else "解释积累与实践的关系"
+                    ],
                     "visual_mode": "illustration" if index == 2 else "diagram",
                     "visual_concept": "层积形态解释累积关系，左侧保留文字阅读区",
                     "visual_grammar": "层积形态展示逐步累积的机制",
@@ -230,7 +239,10 @@ def deck_completion(payload):
         # multi-block evidence passage with its source paragraph breaks.
         quote = " ".join(data["evidence"][0]["text"].split())[:100]
         if data.get("previous_slide"):
-            planned = {**planned, "title": planned["title"] + "（修订）"}
+            planned = {
+                **planned,
+                "title": planned["title"] + (" (revised)" if english else "（修订）"),
+            }
         kind = ["statement", "quote", "comparison", "bullet_list"][planned["index"] % 4]
         element = {"id": "idea", "type": kind, "text": quote, "citations": refs}
         if kind in ("comparison", "bullet_list"):

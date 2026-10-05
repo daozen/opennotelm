@@ -34,4 +34,4 @@ pypdf已编码流的内部数据写入封装在一处，锁定依赖及像素/�
 导出队列payload仅在显式export加入optimize标记；普通恢复优先复用已完成旧版。
 压缩线程沿用取消shield/join、revision guard与原子发布，批量ZIP保留所选PDF字节。
 
-验证和部署范围见[ACCEPTANCE](../ACCEPTANCE.md) Stage47。
+验证和部署范围见[ACCEPTANCE](../ACCEPTANCE.md)。

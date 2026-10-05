@@ -2,36 +2,69 @@
 
 [简体中文](README.zh-CN.md) · [User guide](docs/USER_GUIDE.md) · [Releases](https://github.com/daozen/opennotelm/releases) · [Contributing](CONTRIBUTING.md)
 
-A local-first, self-hosted AI workspace for reading, asking questions, building
-knowledge, and turning your sources into illustrated Visual Decks.
+Turn books, documents and web articles into understanding—and into visual stories
+you can share. OpenNoteLM is a local-first, self-hosted AI notebook with cited
+answers, reusable knowledge pages and illustrated **Visual Decks**.
 
-**Your sources → cited answers → reusable knowledge → Visual Deck → PDF**
+**Read → ask with citations → build knowledge → generate a Visual Deck → export PDF**
 
-OpenNoteLM is preparing its first public **0.1 Beta**. It is an independent MIT
-project, not affiliated with Google or NotebookLM. Bring your own model services;
-there is no account requirement or bundled paid API key.
-See the [bilingual preparation status](docs/RELEASE_STATUS.md) for actual checks and unresolved items.
+MIT licensed. Bring your own language, embedding and image services. No account
+required. An independent project, not affiliated with Google or NotebookLM.
 
-![OpenNoteLM workspace with synthetic demonstration material](docs/images/workspace.png)
+![English workspace in the local Demo notebook](docs/images/workspace.jpg)
 
-*Interface demonstration using self-written material and deterministic test models.
-This screenshot demonstrates the UI, not real-model answer or image quality.*
+## From sources to Visual Decks
 
-## What you can do
+Choose a whole document or select chapters in a directory tree. Generate one
+combined Deck, or a separate Deck for each source or chapter. A chapter automatically
+uses its uploaded parent book as background, so interpretation has the bigger picture.
 
-- Import multiple EPUB, PDF, Word `.docx`, Markdown and text files, or public web URLs.
-  Optionally save web article images; recognize scans and illustrations with a
-  vision-capable language model.
-- Read real chapter trees, move between chapters, and ask questions with links to
-  the original passages. Save and update source-grounded knowledge pages.
-- Generate one combined Deck or separate Decks for selected sources/chapters.
-  Chapter Decks automatically use the uploaded parent book as background.
-- Let content and your instructions guide the visual style. New Decks generate
-  complete image pages, with editable text drafts and provenance kept in the app.
-- Stop/resume generation, inspect safe failure details, rename Decks, revise pages,
-  export PDFs and batch-download current PDFs as a ZIP.
-- Use 12 interface and output languages, including Arabic RTL. First use follows
-  your browser's language preferences; saved choices take precedence.
+- **Content-led visual design.** The model proposes a visual direction from the
+  subject and your instructions, rather than choosing from a fixed theme catalog.
+  A whole-Deck art plan varies diagrams, comparisons, timelines and scenes while
+  keeping a coherent visual language.
+- **Integrated image and text.** The image model creates a complete page with both
+  artwork and typography. Saved text drafts and source references stay available
+  for review. Original document images inform understanding and relevant page writing.
+- **Interpretation you can guide.** Specify audience, depth, output language and
+  visual style. Ask for accessible explanations, analogies or background knowledge;
+  supporting source passages remain distinct from added interpretation.
+- **Revise without starting over.** Edit text or ask AI to revise a page, regenerate
+  its visual, reorder/delete pages, or create a rewritten/restyled copy. Review the
+  exact sources and chapters used by a Deck.
+- **Stay in control.** Stop/resume queued or running generation, retain successful
+  pages on failure and inspect failure details. Tune bounded content, recognition
+  and image concurrency in Model settings.
+- **Share the result.** Rename Decks, use source/chapter names, download PDFs with
+  the Deck title, or batch-download current PDFs as a ZIP. PDF optimization preserves
+  page pixels and resolution.
+
+![Visual Deck preview with page navigation and editing controls](docs/images/deck.jpg)
+
+*Screenshots use the local Demo notebook with the English interface. AI-generated
+pages are examples; text and chart details should be checked against the saved draft
+and original source.*
+
+## A notebook for the whole reading workflow
+
+- **Bring your sources:** batch EPUB, PDF, Word `.docx`, Markdown and text uploads,
+  plus single or batch public URLs. Optionally archive web images; recognize scanned
+  pages, illustrations and tables with a vision-capable language model.
+- **Read and trace:** real chapter trees, continuous chapter/page navigation and
+  answers linked to relevant original passages. Save answers into knowledge pages,
+  edit them and explicitly update them as your understanding grows.
+- **Use your language:** twelve interface and generation languages, Arabic RTL,
+  browser-derived first-use defaults and saved preferences. Existing content stays intact.
+- **Keep your workspace:** sources, snapshots, citations and artifacts remain in
+  your data directory. Switch embedding services and rebuild indexes without
+  reparsing documents or changing original citations.
+
+<details>
+<summary>See the source reader</summary>
+
+![English source reader in the Demo notebook](docs/images/reader.jpg)
+
+</details>
 
 ## Quick start: Docker
 
@@ -60,8 +93,8 @@ Inside Docker, `localhost` means the container. For a service on your computer u
 its reachable host address, such as `http://host.docker.internal:11434/v1` on Docker
 Desktop. Never publish credentials in issues or screenshots.
 
-Versioned prebuilt images will be available after the corresponding release is
-published. Until then, build from source. See [installation and upgrades](docs/DEPLOYMENT.md).
+For versioned image availability, check the [release page](https://github.com/daozen/opennotelm/releases).
+The command above builds from source. See [installation and upgrades](docs/DEPLOYMENT.md).
 
 ## Data, privacy and limitations
 

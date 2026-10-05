@@ -1,6 +1,6 @@
 # 030 · 产物批量下载
 
-日期：2026-10-04。基于769f463。用户要求Deck批量下载，后续其他artifact采用相同能力。
+日期：2026-10-04。用户要求Deck批量下载，后续其他artifact采用相同能力。
 
 ## 产品契约
 
@@ -21,7 +21,7 @@ ZIP使用笔记本名称，不加入原始资料、密钥、诊断或额外说�
 `ArtifactBatchDownload`复用选择/请求/下载交互；`ArtifactDownloadService`注册kind到
 文件适配器，`SavedArtifact`只提供已保存文件的path/name/checksum。当前只有deck适配器；
 未来新增产物需明确其下载格式/归属/当前版本校验，扩展ArtifactRef/UI kind并注册适配器，
-不在本次自动实现未要求的产物、导出格式或Knowledge下载。
+其他产物、导出格式及 Knowledge 下载尚不在当前范围。
 
 POST `/notebooks/{id}/artifacts/download`接收items[{kind,id}]，严格类型/ID/数量/去重，
 完成校验和打包后返回download_url/filename。GET `/artifact-downloads/{token}/file`
@@ -39,4 +39,4 @@ Deck/Notebook删除清理其所有临时包，Notebook删除也使用相同Noteb
 已打包包的名称/字节为请求快照，后续改名/修改不重写它；新请求读取新名称/当前版本。
 原始资料、PDF/art签名、停止/继续、生成队列和模型接口保持现有契约。
 
-验证与部署记录见[ACCEPTANCE](../ACCEPTANCE.md) Stage46。
+验证与部署记录见[ACCEPTANCE](../ACCEPTANCE.md)。

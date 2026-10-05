@@ -38,5 +38,5 @@ Docker提供Noto core及既有CJK字体；没有新增外部翻译服务或图�
 
 全部12种的后台提示/任务payload/metadata、分层压缩/缓存、引用身份与原文保护使用
 隔离资料和测试provider验证；浏览器覆盖跟随/显式选择、草稿、语言请求、Knowledge、
-临时转换及Deck初始选择、手机布局和RTL。具体执行记录见ACCEPTANCE Stage50。
+临时转换及Deck初始选择、手机布局和RTL。具体执行记录见ACCEPTANCE。
 真实翻译准确性、阿拉伯语/印地语生图文字质量仍取决于用户模型，不声称完成母语审校。

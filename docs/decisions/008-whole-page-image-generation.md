@@ -78,18 +78,7 @@ Existing native tests explicitly select the native path to retain regression
 coverage. Browser tests cover default creation, copies, editing help, text drafts,
 PDF previews, failures and refreshed deep links; Docker uses isolated fixture data.
 
-Real visual acceptance uses a separate 15-page copy of the previously authorized
-research-paper Deck with the user's configured local language/image services.
-Reference PDFs guide visual review, not factual content. Review every rendered page
-and exported PDF against its saved display copy before presenting the result as
-finished. Fixture success alone cannot establish image-text accuracy or visual
-equivalence to the NotebookLM references.
-
-The completed real trial produced all 15 pages in approximately 14.3 minutes.
-All full-size pages and the exported PDF were visually reviewed: core authored
-content and source qualifiers remained readable, with no observed clipping or
-overlap. The provider returned 1672x941 pixels despite the 2048x1152 request;
-the export preserves those actual pixels. Some pages added diagram labels outside
-the saved copy, and some included platform logos despite the prompt. Prompt wording
-alone does not guarantee exact image text. These observations remain explicit
-limitations, not a claim of automated verification or NotebookLM visual parity.
+Real visual acceptance must compare every rendered page and PDF with the saved
+draft and source. Provider dimensions may differ from requested dimensions; the
+export preserves actual pixels. Extra text and inaccurate chart details remain
+possible. Fixture success does not establish visual parity or image-text accuracy.
