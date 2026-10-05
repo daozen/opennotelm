@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 from check_xml_runtime import validate
@@ -15,9 +16,36 @@ def enrich(bom: dict, report: dict) -> dict:
         tuple(report["libxml2_runtime"]),
         tuple(report["libxslt_runtime"]),
     )
-    lxml_ref = f"pkg:pypi/lxml@{sources['lxml']['version']}"
-    if not any(c.get("bom-ref") == lxml_ref for c in bom["components"]):
+    version = sources["lxml"]["version"]
+    lxml_purl = f"pkg:pypi/lxml@{version}"
+    matches = [c for c in bom["components"] if c.get("purl", c.get("bom-ref")) == lxml_purl]
+    if any(not c.get("bom-ref") for c in matches):
         raise ValueError("SBOM does not contain the verified lxml distribution")
+    # A BOM reference identifies a component; it need not equal its package URL.
+    # Trivy uses UUID references when an installation cache duplicates a package.
+    paths = {
+        c["bom-ref"]: [
+            p["value"]
+            for p in c.get("properties", [])
+            if p.get("name") == "aquasecurity:trivy:FilePath"
+        ]
+        for c in matches
+    }
+    if any(paths.values()):
+        matches = [
+            c
+            for c in matches
+            if any(
+                re.fullmatch(
+                    rf"/?app/\.venv/lib/python[\d.]+/site-packages/lxml-{re.escape(version)}\.dist-info/METADATA",
+                    path,
+                )
+                for path in paths[c["bom-ref"]]
+            )
+        ]
+    if len(matches) != 1 or not matches[0].get("bom-ref"):
+        raise ValueError("SBOM does not contain the verified lxml distribution")
+    lxml_ref = matches[0]["bom-ref"]
     refs = []
     for name in ("libxml2", "libxslt"):
         entry = sources[name]
