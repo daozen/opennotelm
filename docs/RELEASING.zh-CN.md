@@ -3,7 +3,7 @@
 [English](RELEASING.md)
 
 目标仓库 https://github.com/daozen/opennotelm，采用 MIT。
-首个候选标签 `v0.1.0-beta.1`，应用元数据 `0.1.0`；准备不等于发布标签、镜像或 Release。
+首个候选标签 `v0.1.0-beta.2`，应用元数据 `0.1.0`；准备不等于发布标签、镜像或 Release。
 实际验证记录在 [ACCEPTANCE](ACCEPTANCE.md)，未运行的云端 CI 不算通过。
 
 ## 公开分支与检查
@@ -14,7 +14,7 @@
 
 - 核对 MIT、依赖清单、测试素材来源及演示截图。
 - 不含用户资料、生图、数据库、`.env`、密钥、提示/响应或私有验证报告。
-- 执行 `uv run python tools/release_check.py --tag v0.1.0-beta.1`
+- 执行 `uv run python tools/release_check.py --tag v0.1.0-beta.2`
   与 `bash tools/security_scan.sh`，扫描报告保留本地，不上传。
 - 完成后端/前端、原生浏览器与隔离 Docker 检查，诚实记录跳过项和质量边界。
 - 公开快照与已验源码逐文件核对，提交带 DCO，私有历史可恢复，不需要重写原分支。
@@ -38,7 +38,7 @@
 ```sh
 uv sync --locked
 npm ci --ignore-scripts --prefix frontend
-uv run python tools/build_release.py --tag v0.1.0-beta.1
+uv run python tools/build_release.py --tag v0.1.0-beta.2
 ```
 
 输出在忽略的 `.release-work/assets/`：已提交源码包、运行依赖许可原文、经锁文件校验

@@ -587,3 +587,8 @@ mount/umount/nsenter/infocmp。扫描保持原始JSON/SBOM，独立review记录�
 配置不受影响/未解决项；后者仍失败。运行探针核对全部运行代码及锁文件哈希、准确
 包版本、策略摘要、权限、组件缺失和真实浏览器进程映射；2026-11-04到期。变更上述
 内容须重新审查，不能仅刷新哈希来放行。无资料迁移、现有产物重写或原生环境升级。
+
+运行镜像不保留 uv 安装缓存。XML SBOM 使用准确 package URL 和运行安装路径
+确定 lxml 组件，以原有 `bom-ref` 建立依赖关系；缓存副本不能继承静态库运行核验。
+`bom-ref` 允许 UUID，与包身份分别处理，见
+[CycloneDX 规范](https://cyclonedx.org/docs/1.7/json/)。

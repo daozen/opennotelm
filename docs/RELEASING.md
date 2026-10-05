@@ -5,7 +5,7 @@
 ## Repository and status
 
 Target: https://github.com/daozen/opennotelm. License: MIT.
-The first candidate is `v0.1.0-beta.1`, with application metadata `0.1.0`.
+The first candidate is `v0.1.0-beta.2`, with application metadata `0.1.0`.
 Preparation does not publish a tag, image or Release. Current evidence belongs in
 [ACCEPTANCE](ACCEPTANCE.md), not in claims about cloud CI runs that have not happened.
 
@@ -20,7 +20,7 @@ do not force-push or erase the existing remote copyright statement.
 - Review MIT notices, dependency inventory, synthetic fixture provenance and screenshots.
 - Confirm the tree contains no original user documents, model artifacts, databases,
   `.env` variants, secrets, prompts/responses or private operational reports.
-- Run `uv run python tools/release_check.py --tag v0.1.0-beta.1` and
+- Run `uv run python tools/release_check.py --tag v0.1.0-beta.2` and
   `bash tools/security_scan.sh`. Scanner reports stay local; never upload them.
 - Run backend lint/format/tests, frontend tests/build/format, full native acceptance
   and isolated Docker acceptance. Report actual skips and quality limitations.
@@ -52,7 +52,7 @@ Commit reviewed changes first; no artifacts are created from a dirty tree:
 ```sh
 uv sync --locked
 npm ci --ignore-scripts --prefix frontend
-uv run python tools/build_release.py --tag v0.1.0-beta.1
+uv run python tools/build_release.py --tag v0.1.0-beta.2
 ```
 
 Default output is the ignored `.release-work/assets/`. It includes a committed-source
