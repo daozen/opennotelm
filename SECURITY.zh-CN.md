@@ -18,7 +18,7 @@
 
 ## 支持版本
 
-项目正在准备首个公开 0.1 Beta。安全修复以最新已发布 Beta 为目标，不承诺旧快照回补。
+OpenNoteLM 当前提供 Beta 版本。安全修复以最新已发布 Beta 为目标，不承诺旧快照回补。
 实际发布状态见[变更记录](CHANGELOG.zh-CN.md)和 GitHub Releases。
 升级前备份完整数据目录与加密主密钥。
 

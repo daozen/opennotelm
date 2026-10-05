@@ -2,6 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, field_validator, model_validator
 
+from .languages import OutputLanguage
 from .retrieval import Scope
 from .schemas import StrictModel
 
@@ -37,7 +38,7 @@ class DeckScope(Scope):
 class DeckInput(StrictModel):
     scope: DeckScope = Field(default_factory=DeckScope)
     slide_count: Literal[10, 15, 20] = 15
-    language: str = Field(default="zh-CN", min_length=2, max_length=80)
+    language: OutputLanguage = "zh-CN"
     instruction: str = Field(default="", max_length=4000)
     render_mode: Literal["generated_page", "native"] = "generated_page"
     title_mode: Literal["auto", "source"] = "auto"
