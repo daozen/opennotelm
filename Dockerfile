@@ -46,6 +46,7 @@ COPY tools/python_notices.py tools/browser_notices.py ./tools/
 COPY tools/probe_security_runtime.py tools/container_runtime_review.json ./tools/
 RUN .venv/bin/python tools/python_notices.py --output /app/licenses/python
 RUN .venv/bin/python tools/browser_notices.py --output /app/licenses/browser
+RUN rm -rf /tmp/uv-cache
 COPY --from=frontend /build/frontend/dist ./frontend/dist
 USER app
 EXPOSE 3000

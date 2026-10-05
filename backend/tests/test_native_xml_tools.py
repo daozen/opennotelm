@@ -104,3 +104,78 @@ def test_native_sbom_rejects_different_python_distribution(monkeypatch):
     }
     with pytest.raises(ValueError, match="lxml distribution"):
         sbom.enrich({"components": [{"bom-ref": "pkg:pypi/lxml@6.0.2"}]}, report)
+
+
+def xml_report():
+    sources = {
+        name: {
+            "version": version,
+            "url": "https://example.com/source",
+            "sha256": "a" * 64,
+            "license": "MIT",
+        }
+        for name, version in [("libxml2", "2.15.4"), ("libxslt", "1.1.45")]
+    }
+    return {
+        "sources": {**sources, "lxml": {"version": "6.1.3"}},
+        "libxml2_compiled": [2, 15, 4],
+        "libxml2_runtime": [2, 15, 4],
+        "libxslt_runtime": [1, 1, 45],
+    }
+
+
+def test_native_sbom_links_runtime_uuid_without_claiming_cache_libraries(monkeypatch):
+    monkeypatch.setitem(sys.modules, "check_xml_runtime", load("check_xml_runtime"))
+    sbom = load("native_xml_sbom")
+    components = [
+        {
+            "bom-ref": ref,
+            "purl": "pkg:pypi/lxml@6.1.3",
+            "properties": [{"name": "aquasecurity:trivy:FilePath", "value": path}],
+        }
+        for ref, path in [
+            (
+                "runtime-uuid",
+                "app/.venv/lib/python3.12/site-packages/lxml-6.1.3.dist-info/METADATA",
+            ),
+            ("cache-uuid", "tmp/uv-cache/archive-v0/example/lxml-6.1.3.dist-info/METADATA"),
+        ]
+    ]
+    original = {"ref": "cache-uuid", "dependsOn": ["unverified-cache-library"]}
+    result = sbom.enrich(
+        {"components": components, "dependencies": [original.copy()]}, xml_report()
+    )
+    assert result["dependencies"][0] == original
+    assert result["dependencies"][1]["ref"] == "runtime-uuid"
+    assert len(result["dependencies"][1]["dependsOn"]) == 2
+    assert result["components"][:2] == components[:2]
+
+
+@pytest.mark.parametrize("refs", [["first", "second"], [None]])
+def test_native_sbom_rejects_ambiguous_or_missing_component_reference(monkeypatch, refs):
+    monkeypatch.setitem(sys.modules, "check_xml_runtime", load("check_xml_runtime"))
+    sbom = load("native_xml_sbom")
+    bom = {"components": [{"bom-ref": ref, "purl": "pkg:pypi/lxml@6.1.3"} for ref in refs]}
+    with pytest.raises(ValueError, match="lxml distribution"):
+        sbom.enrich(bom, xml_report())
+
+
+def test_native_sbom_rejects_cache_only_component(monkeypatch):
+    monkeypatch.setitem(sys.modules, "check_xml_runtime", load("check_xml_runtime"))
+    sbom = load("native_xml_sbom")
+    bom = {
+        "components": [
+            {
+                "bom-ref": "cache",
+                "purl": "pkg:pypi/lxml@6.1.3",
+                "properties": [
+                    {
+                        "name": "aquasecurity:trivy:FilePath",
+                        "value": "tmp/uv-cache/archive-v0/example/lxml-6.1.3.dist-info/METADATA",
+                    }
+                ],
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="lxml distribution"):
+        sbom.enrich(bom, xml_report())

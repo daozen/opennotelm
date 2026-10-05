@@ -24,7 +24,7 @@ Docker 构建另外重编译并核对 lxml 内置 XML 库；原生 `uv sync` 不
 镜像并记录 digest；发布前仍可源码构建。在 `.env` 中指定版本，例如：
 
 ```dotenv
-OPENNOTELM_IMAGE=ghcr.io/daozen/opennotelm:0.1.0-beta.1
+OPENNOTELM_IMAGE=ghcr.io/daozen/opennotelm:0.1.0-beta.2
 ```
 
 ```sh

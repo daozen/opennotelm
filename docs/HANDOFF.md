@@ -356,3 +356,8 @@ Word basedOn 错误已修复，不再用 defusedxml 构造接口。机制/取舍
 发布镜像使用原生 amd64/arm64 runner，保留真实浏览器探针及逐镜像扫描。跨架构
 QEMU 下 Chromium 启动失败不能通过跳过探针解决；检查 RELEASING 的原生构建链。
 工作流修复可用于已有准确目标提交，不移动版本标签，也不替换不同的已有镜像版本。
+
+最终运行镜像删除 `/tmp/uv-cache`，保留已安装依赖与许可。CycloneDX 的 `bom-ref`
+可以是 UUID；`native_xml_sbom.py` 按准确 package URL 和运行环境安装路径匹配
+lxml，再使用原有 reference 关联静态库，不能把缓存副本声明成已验证的运行库。
+歧义、缺失引用和仅缓存条目继续拒绝；回归见 `test_native_xml_tools.py`。

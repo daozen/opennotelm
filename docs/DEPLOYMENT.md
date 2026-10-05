@@ -30,7 +30,7 @@ records the digest in the draft release. Source-build installation remains avail
 Set an explicit version in `.env`, for example:
 
 ```dotenv
-OPENNOTELM_IMAGE=ghcr.io/daozen/opennotelm:0.1.0-beta.1
+OPENNOTELM_IMAGE=ghcr.io/daozen/opennotelm:0.1.0-beta.2
 ```
 
 Then run:
