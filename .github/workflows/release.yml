@@ -45,10 +45,139 @@ jobs:
     uses: ./.github/workflows/ci.yml
     with:
       ref: ${{ needs.target.outputs.commit }}
-  draft:
+  prepare:
     needs: [target, checks]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: release
+    permissions:
+      contents: write
+    outputs:
+      image: ${{ steps.image.outputs.name }}
+      version: ${{ steps.image.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.target.outputs.commit }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: '0.12.6'
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: Validate reviewed commit and prepare source/notices
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ needs.target.outputs.commit }}
+        run: |
+          uv sync --locked
+          uv run python tools/release_check.py --tag "$RELEASE_TAG"
+          uv run python tools/release_target.py --commit "$RELEASE_COMMIT" --tag "$RELEASE_TAG"
+          npm ci --ignore-scripts --prefix frontend
+          uv run python tools/build_release.py --tag "$RELEASE_TAG"
+      - name: Create or verify immutable annotated tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ needs.target.outputs.commit }}
+        run: uv run python tools/release_target.py --commit "$RELEASE_COMMIT" --tag "$RELEASE_TAG" --create-tag
+      - name: Define reviewed image name and version
+        id: image
+        env:
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          printf 'name=ghcr.io/%s\n' "${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          printf 'version=%s\n' "${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-assets
+          path: .release-work/assets/
+          if-no-files-found: error
+          retention-days: 7
+  build:
+    # Every package write depends on the protected environment approval above.
+    needs: [target, prepare]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.target.outputs.commit }}
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push native image by digest
+        id: image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/${{ matrix.arch }}
+          outputs: type=image,name=${{ needs.prepare.outputs.image }},push-by-digest=true,name-canonical=true,push=true
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.version=${{ inputs.tag }}
+            org.opencontainers.image.revision=${{ needs.target.outputs.commit }}
+          sbom: true
+          provenance: mode=max
+      - name: Verify exact native image and fresh startup
+        env:
+          IMAGE_NAME: ${{ needs.prepare.outputs.image }}
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+          IMAGE_ARCH: ${{ matrix.arch }}
+        run: |
+          image="$IMAGE_NAME@$IMAGE_DIGEST"
+          docker pull --platform "linux/$IMAGE_ARCH" "$image"
+          bash tools/container_scan.sh "$image" .release-work/container-security
+          container="release-smoke-$IMAGE_ARCH"
+          trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+          docker run -d --name "$container" --network none --cap-drop ALL \
+            --security-opt no-new-privileges:true -e DATA_DIR=/tmp/release-smoke "$image"
+          ready=false
+          for attempt in $(seq 1 45); do
+            if docker exec "$container" /app/.venv/bin/python -c \
+              "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3000/api/health', timeout=2)" >/dev/null 2>&1; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = true
+          docker exec "$container" /app/.venv/bin/python -c \
+            "import json,urllib.request; assert json.load(urllib.request.urlopen('http://127.0.0.1:3000/api/notebooks')) == []; assert 'OpenNoteLM' in urllib.request.urlopen('http://127.0.0.1:3000/').read().decode()"
+      - name: Export verified digest
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+          IMAGE_ARCH: ${{ matrix.arch }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/digests"
+          printf '%s\n' "$IMAGE_DIGEST" > "$RUNNER_TEMP/digests/$IMAGE_ARCH.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-digests-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/
+          if-no-files-found: error
+          retention-days: 7
+  draft:
+    needs: [target, prepare, build]
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       packages: write
@@ -64,70 +193,83 @@ jobs:
         with:
           version: '0.12.6'
           python-version: '3.12'
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '24'
-      - name: Validate reviewed commit and prepare source/notices
-        id: reviewed
-        env:
-          RELEASE_TAG: ${{ inputs.tag }}
-          RELEASE_COMMIT: ${{ needs.target.outputs.commit }}
-        run: |
-          uv sync --locked
-          uv run python tools/release_check.py --tag "$RELEASE_TAG"
-          uv run python tools/release_target.py --commit "$RELEASE_COMMIT" --tag "$RELEASE_TAG"
-          printf 'commit=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          npm ci --ignore-scripts --prefix frontend
-          uv run python tools/build_release.py --tag "$RELEASE_TAG"
-      - name: Create or verify immutable annotated tag
+      - name: Recheck immutable release target
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_COMMIT: ${{ needs.target.outputs.commit }}
-        run: uv run python tools/release_target.py --commit "$RELEASE_COMMIT" --tag "$RELEASE_TAG" --create-tag
-      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+        run: |
+          uv sync --locked
+          uv run python tools/release_target.py --commit "$RELEASE_COMMIT" --tag "$RELEASE_TAG" --create-tag
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: release-digests-*
+          merge-multiple: true
+          path: .release-work/digests
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-assets
+          path: .release-work/assets
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Define immutable-version image tags
+      - name: Merge verified platforms without overwriting a version
         id: image
         env:
-          REPOSITORY: ${{ github.repository }}
-          RELEASE_TAG: ${{ inputs.tag }}
+          IMAGE_NAME: ${{ needs.prepare.outputs.image }}
+          IMAGE_VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          image="ghcr.io/${REPOSITORY,,}"
-          printf 'name=%s\n' "$image" >> "$GITHUB_OUTPUT"
-          printf 'tag=%s\n' "${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
-      - name: Build versioned images and SBOM/provenance
-        id: build
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.image.outputs.name }}:${{ steps.image.outputs.tag }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.version=${{ inputs.tag }}
-            org.opencontainers.image.revision=${{ steps.reviewed.outputs.commit }}
-          sbom: true
-          provenance: mode=max
+          python3 - <<'PYCODE'
+          import pathlib, re
+          directory = pathlib.Path('.release-work/digests')
+          assert {p.name for p in directory.iterdir()} == {'amd64.txt', 'arm64.txt'}
+          for arch in ('amd64', 'arm64'):
+              assert re.fullmatch(r'sha256:[a-f0-9]{64}', (directory / f'{arch}.txt').read_text().strip())
+          PYCODE
+          amd64=$(cat .release-work/digests/amd64.txt)
+          arm64=$(cat .release-work/digests/arm64.txt)
+          ref="$IMAGE_NAME:$IMAGE_VERSION"
+          docker buildx imagetools create --dry-run "$IMAGE_NAME@$amd64" "$IMAGE_NAME@$arm64" > .release-work/candidate-index.json
+          if docker buildx imagetools inspect "$ref" --raw > .release-work/existing-index.json 2> .release-work/existing-index.err; then
+            python3 - <<'PYCODE'
+          import json, pathlib
+          expected = json.loads(pathlib.Path('.release-work/candidate-index.json').read_text())
+          existing = json.loads(pathlib.Path('.release-work/existing-index.json').read_text())
+          assert {m['digest'] for m in expected['manifests']} == {m['digest'] for m in existing['manifests']}, 'Existing image version differs; never overwrite it'
+          PYCODE
+          else
+            if ! grep -qi 'not found' .release-work/existing-index.err; then
+              cat .release-work/existing-index.err >&2
+              exit 1
+            fi
+            docker buildx imagetools create --tag "$ref" "$IMAGE_NAME@$amd64" "$IMAGE_NAME@$arm64"
+          fi
+          docker buildx imagetools inspect "$ref" --format '{{json .Manifest}}' > .release-work/image-index.json
+          python3 - <<'PYCODE'
+          import json, os, pathlib, re
+          value = json.loads(pathlib.Path('.release-work/image-index.json').read_text())
+          platforms = {(m.get('platform', {}).get('os'), m.get('platform', {}).get('architecture')) for m in value['manifests']}
+          assert {('linux', 'amd64'), ('linux', 'arm64')} <= platforms
+          assert re.fullmatch(r'sha256:[a-f0-9]{64}', value['digest'])
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f"digest={value['digest']}\n")
+          PYCODE
       - uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
         with:
-          subject-name: ${{ steps.image.outputs.name }}
-          subject-digest: ${{ steps.build.outputs.digest }}
+          subject-name: ${{ needs.prepare.outputs.image }}
+          subject-digest: ${{ steps.image.outputs.digest }}
           push-to-registry: true
       - name: Create a draft release for final review
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
-          IMAGE_NAME: ${{ steps.image.outputs.name }}
-          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_NAME: ${{ needs.prepare.outputs.image }}
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
         run: |
+          (cd .release-work/assets && sha256sum --check SHA256SUMS)
           uv run python tools/release_notes.py --tag "$RELEASE_TAG" --output .release-work/release-notes.md
           printf '\nImage / 镜像: `%s@%s`\n' "$IMAGE_NAME" "$IMAGE_DIGEST" >> .release-work/release-notes.md
           printf '%s\n' "$IMAGE_NAME@$IMAGE_DIGEST" > .release-work/assets/image-digest.txt
