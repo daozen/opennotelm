@@ -2,7 +2,7 @@
 
 [English](USER_GUIDE.md)
 
-[English quick start](https://github.com/daozen/opennotelm/blob/main/docs/README.md) · [中文快速开始](../README.zh-CN.md) · [安装、备份与恢复](DEPLOYMENT.zh-CN.md)
+[English quick start](../README.md) · [中文快速开始](../README.zh-CN.md) · [安装、备份与恢复](DEPLOYMENT.zh-CN.md)
 
 ## 1. 配置模型 / Configure models
 

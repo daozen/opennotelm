@@ -1,6 +1,6 @@
 # OpenNoteLM
 
-[English](https://github.com/daozen/opennotelm/blob/main/docs/README.md) · [使用指南](docs/USER_GUIDE.zh-CN.md) · [版本发布](https://github.com/daozen/opennotelm/releases) · [参与贡献](CONTRIBUTING.zh-CN.md)
+[English](README.md) · [使用指南](docs/USER_GUIDE.zh-CN.md) · [版本发布](https://github.com/daozen/opennotelm/releases) · [参与贡献](CONTRIBUTING.zh-CN.md)
 
 将书籍、文档和网页变成可理解的知识，再变成可以分享的视觉故事。
 OpenNoteLM 是开源、本地优先、可自托管的 AI 笔记本，提供带出处问答、知识页，
@@ -96,8 +96,8 @@ docker compose up -d --build
 ## 开发与反馈
 
 开发使用 Python 3.12、[uv](https://docs.astral.sh/uv/) 和 Node.js 24。
-安装、测试与贡献规范见[CONTRIBUTING](CONTRIBUTING.zh-CN.md)，需求、架构和 agent 接手文档
-见[文档入口](https://github.com/daozen/opennotelm/blob/main/docs/README.md)。
+安装、测试与贡献规范见[CONTRIBUTING](CONTRIBUTING.zh-CN.md)，使用、部署、隐私和许可指南
+见[文档入口](docs/README.md)。
 
 通过 [Issues](https://github.com/daozen/opennotelm/issues) 反馈问题和模型兼容性，
 请使用自编示例，并在分享前检查诊断报告。社区遵循[行为准则](CODE_OF_CONDUCT.zh-CN.md)。
