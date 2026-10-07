@@ -16,7 +16,7 @@ UID/GID 10001 before startup rather than making the whole tree world-writable.
 
 For native development see [CONTRIBUTING](../CONTRIBUTING.md); it is not a packaged
 desktop installer. macOS can use Docker Desktop or an already configured Colima
-runtime. Test-runtime details are in [Docker acceptance](DOCKER_ACCEPTANCE.md).
+runtime.
 Current cryptography wheels no longer cover Intel macOS; native installation there
 may need upstream build prerequisites. Docker's Linux amd64 image is the preferred
 path on those machines. Platform availability is not a guarantee of completed testing.
@@ -101,4 +101,4 @@ The candidate runtime uses Python 3.12 on Debian 13/Trixie. Image security statu
 The Docker build uses a verified replacement for lxml's embedded XML libraries;
 native `uv sync` does not apply that replacement. Default Compose drops app
 capabilities and prevents privilege escalation; do not remove those controls to
-work around a failed startup. See [security review](CONTAINER_SECURITY_REVIEW.md).
+work around a failed startup. See [security review](SECURITY_SUPPORT.md).

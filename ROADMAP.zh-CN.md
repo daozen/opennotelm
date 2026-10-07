@@ -2,7 +2,7 @@
 
 [English](ROADMAP.md)
 
-这是发展方向，不是交付日期承诺。当前能力见 [PRD](docs/PRD.md)，发布状态见[变更记录](CHANGELOG.zh-CN.md)。
+这是发展方向，不是交付日期承诺。当前能力见 [使用指南](docs/USER_GUIDE.zh-CN.md)，发布状态见[变更记录](CHANGELOG.zh-CN.md)。
 
 ## 公开 Beta
 

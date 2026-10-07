@@ -97,16 +97,13 @@ or image accuracy.
 - Add ordered migrations; never edit an already-applied migration. Keep lockfiles current.
 - Keep all **12** UI catalogs and interpolation parameters aligned; preserve drafts.
 - Do not log or commit sources, keys, raw prompts/responses, databases or private URLs.
-- Update PRD/design/change matrix for behavior changes, and acceptance evidence for
-  tests. Preserve historical decisions with explicit supersession notes.
+- Update affected public usage/deployment documentation and include relevant test
+  evidence in the pull request. Keep private research and operational notes out of public commits.
 
 New Decks use complete image pages; saved native Decks remain compatible. Source
 text and model output are untrusted data. One process owns a data directory; the
 bounded task scheduler provides concurrency. Do not add server workers, cloud
 accounts, agents or PPTX as incidental scope expansion.
 
-Architecture and coding-agent work start with [HANDOFF](docs/HANDOFF.md),
-[current PRD](docs/PRD.md), [design](docs/SYSTEM_DESIGN.md),
-[requirements changes](docs/REQUIREMENTS_CHANGES.md) and [AGENTS](AGENTS.md).
 Maintainers review scope, provenance, recovery, licenses and test evidence before
 merging; a green check alone is not automatic approval. Support is best effort.

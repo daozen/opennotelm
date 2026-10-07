@@ -11,8 +11,7 @@ If no versioned image is available, use the source-build instructions.
 - Installation and upgrades / 安装升级：[English](DEPLOYMENT.md) · [简体中文](DEPLOYMENT.zh-CN.md)
 - User guide / 使用指南：[English](USER_GUIDE.md) · [简体中文](USER_GUIDE.zh-CN.md)
 - Security / 安全：[English](../SECURITY.md) · [简体中文](../SECURITY.zh-CN.md)
-- Container support conditions / 容器适用条件：[Review / 核查](CONTAINER_SECURITY_REVIEW.md)
-- Maintainer release procedure / 维护者发布流程：[English](RELEASING.md) · [简体中文](RELEASING.zh-CN.md)
+- Container support conditions / 容器适用条件：[Review / 核查](SECURITY_SUPPORT.md)
 
 This Beta is a single-user application without built-in authentication. Generated
 image text and charts require review, and default image PDFs have no searchable

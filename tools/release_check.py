@@ -5,8 +5,10 @@ import json
 import re
 import subprocess
 import tomllib
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from urllib.parse import unquote
+
+from public_source import internal_file, load_policy, runtime_file
 
 
 def project_files(root: Path) -> list[str]:
@@ -20,15 +22,34 @@ def project_files(root: Path) -> list[str]:
 
 
 def forbidden_file(name: str) -> bool:
-    parts = PurePosixPath(name).parts
-    if any(p in {"data", ".venv", ".release-work", "node_modules", "dist"} for p in parts):
-        return True
-    if any(p.startswith((".e2e-data", ".docker-acceptance-data")) for p in parts):
-        return True
-    filename = parts[-1]
-    return (
-        filename.startswith(".env") and filename != ".env.example"
-    ) or filename.lower().endswith((".sqlite", ".sqlite3", ".db", ".pem", ".key"))
+    return runtime_file(name)
+
+
+def history_errors(root: Path, documents: set[str]) -> list[str]:
+    paths = (
+        subprocess.check_output(
+            [
+                "git",
+                "log",
+                "--all",
+                "--format=",
+                "--name-only",
+                "-z",
+                "--root",
+                "-m",
+                "--no-renames",
+                "--diff-filter=AM",
+            ],
+            cwd=root,
+        )
+        .decode()
+        .split("\0")
+    )
+    return [
+        f"Non-public path in Git history: {name}"
+        for name in sorted(set(paths))
+        if name and (runtime_file(name) or internal_file(name, documents))
+    ]
 
 
 def validate_tag(tag: str, version: str) -> None:
@@ -38,12 +59,18 @@ def validate_tag(tag: str, version: str) -> None:
         raise ValueError("Release tag base version does not match application metadata")
 
 
-def check(root: Path, tag: str | None = None) -> list[str]:
+def check(root: Path, tag: str | None = None, *, history=False) -> list[str]:
     errors = []
+    try:
+        documents = load_policy(root)
+    except (OSError, ValueError, KeyError, TypeError):
+        return ["Missing or invalid public documentation policy"]
     files = project_files(root)
     for name in files:
         if forbidden_file(name):
             errors.append(f"Private/runtime file included: {name}")
+        if internal_file(name, documents):
+            errors.append(f"Internal/unreviewed document included: {name}")
         if (root / name).is_symlink():
             errors.append(f"Symlink included in public source: {name}")
     project = tomllib.loads((root / "pyproject.toml").read_text())["project"]
@@ -101,6 +128,8 @@ def check(root: Path, tag: str | None = None) -> list[str]:
     }
     if set(locked_npm) - npm_inventory:
         errors.append("Dependency inventory does not cover every locked npm package version")
+    if history:
+        errors.extend(history_errors(root, documents))
     return errors
 
 
@@ -108,8 +137,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("."))
     parser.add_argument("--tag")
+    parser.add_argument(
+        "--history", action="store_true", help="Also reject non-public Git ancestors"
+    )
     args = parser.parse_args()
-    failures = check(args.root.resolve(), args.tag)
+    failures = check(args.root.resolve(), args.tag, history=args.history)
     for failure in failures:
         print(failure)
     if failures:

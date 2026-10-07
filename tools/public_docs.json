@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "documents": [
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    "CHANGELOG.md", "CHANGELOG.zh-CN.md",
+    "CODE_OF_CONDUCT.md", "CODE_OF_CONDUCT.zh-CN.md",
+    "CONTRIBUTING.md", "CONTRIBUTING.zh-CN.md",
+    "README.md", "README.zh-CN.md", "ROADMAP.md", "ROADMAP.zh-CN.md",
+    "SECURITY.md", "SECURITY.zh-CN.md", "THIRD_PARTY_NOTICES.md",
+    "docs/README.md", "docs/DEPENDENCIES.json",
+    "docs/DEPLOYMENT.md", "docs/DEPLOYMENT.zh-CN.md",
+    "docs/USER_GUIDE.md", "docs/USER_GUIDE.zh-CN.md",
+    "docs/PRIVACY.md", "docs/PRIVACY.zh-CN.md",
+    "docs/LICENSING.md", "docs/LICENSING.zh-CN.md",
+    "docs/THIRD_PARTY_NOTICES.zh-CN.md",
+    "docs/SECURITY_SUPPORT.md", "docs/RELEASE_STATUS.md", "docs/QWEN_TTS.md",
+    "docs/releases/first-beta.md",
+    "docs/images/workspace.jpg", "docs/images/reader.jpg", "docs/images/deck.jpg",
+    "examples/README.md", "examples/learning-notes.md",
+    "frontend/e2e/fixtures/README.md", "frontend/e2e/fixtures/notes.md"
+  ]
+}

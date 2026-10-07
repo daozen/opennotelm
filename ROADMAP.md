@@ -3,7 +3,7 @@
 [简体中文](ROADMAP.zh-CN.md)
 
 This is a direction, not a delivery-date promise. Current behavior is defined in
-[PRD](docs/PRD.md); release status is in [CHANGELOG](CHANGELOG.md).
+[user guide](docs/USER_GUIDE.md); release status is in [CHANGELOG](CHANGELOG.md).
 
 ## Public Beta
 

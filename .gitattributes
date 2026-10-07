@@ -1,2 +1,7 @@
 *.pdf binary
 *.docx binary
+
+.private-workspace export-ignore
+AGENTS.md export-ignore
+internal export-ignore
+private export-ignore

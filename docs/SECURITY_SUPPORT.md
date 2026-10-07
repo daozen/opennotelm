@@ -50,20 +50,3 @@ CPU 渲染。安全门禁结合原始扫描、准确厂商修复和实际运行�
 结论绑定准确漏洞、包/代码/锁文件、策略及运行条件。新漏洞、配置变化、证据缺失或
 **2026-11-04** 复核到期必须重新评估，不能仅重算哈希放行。特权、GPU/X11、设备或任意
 代码挂载、自定义渲染器不沿用结论；发布架构需单独验证。
-
-## Policy and tooling / 策略与工具
-
-The Deck-language change in [039](decisions/039-deck-output-language.md) only affects
-model instructions, validated language codes and explicit output-language propagation. It adds no parser, package, executable, privilege, device or rendering
-path; the existing advisory conditions and expiry remain unchanged. Updated source
-signatures require fresh runtime probes and an image scan before release.
-
-[039](decisions/039-deck-output-language.md)仅调整模型语言指令、语言代码白名单及各阶段的语言传递，不新增解析器、依赖、权限或渲染路径。原漏洞适用条件和
-复核期限保留；更新源码签名后仍须重新执行实际运行探针和镜像扫描才能发布。
-
-- [Vendor package pins / 厂商包配置](../tools/debian_security_packages.json)
-- [Runtime applicability policy / 运行适用性策略](../tools/container_runtime_review.json)
-- [Runtime probe / 实际运行探针](../tools/probe_security_runtime.py)
-- [Finding assessment / 扫描结果评估](../tools/review_container_findings.py)
-- [Security checks / 安全检查](../tools/security_scan.sh)
-- [Design decision / 设计决策](decisions/038-hosted-beta-checks-and-vendor-fixes.md)

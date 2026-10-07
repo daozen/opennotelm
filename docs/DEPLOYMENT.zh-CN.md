@@ -16,7 +16,7 @@
 这类机器优先使用 Docker Linux amd64 镜像。可安装平台不等于已全部完成验收。
 Docker 构建另外重编译并核对 lxml 内置 XML 库；原生 `uv sync` 不会应用该替换。
 默认 Compose 删除应用额外权限并禁止权限提升；启动失败时不要直接删除这些防护。
-当前镜像未解决安全项见[安全核查](CONTAINER_SECURITY_REVIEW.md)。
+当前镜像未解决安全项见[安全核查](SECURITY_SUPPORT.md)。
 
 ## 已发布镜像
 
