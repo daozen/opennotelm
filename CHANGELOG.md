@@ -4,10 +4,17 @@
 
 Release tags and downloadable assets are listed in
 [GitHub Releases](https://github.com/daozen/opennotelm/releases).
-The application/package version is currently `0.1.0`; no public release is declared
-by this changelog. The first candidate tag is `v0.1.0-beta.1`.
+The application/package base version is `0.1.0`. Published tags and assets are
+authoritative on GitHub Releases; development changes below are not a new release.
 
-## Unreleased — first public 0.1 Beta
+## Unreleased
+
+- Add source-linked solo/dialogue Podcasts with approximate 5/10/20/30/60-minute
+  targets, editable scripts, checkpointed speech, playback and MP3/ZIP downloads.
+- Add optional OpenAI-compatible Speech/Gemini configuration and local Qwen3-TTS setup.
+- New public images require an updated security and license review for FFmpeg.
+
+## 0.1 Beta baseline
 
 ### Included
 
@@ -25,7 +32,7 @@ by this changelog. The first candidate tag is `v0.1.0-beta.1`.
 - MIT licensing, public contribution/security policies and versioned release tooling.
 - Verified Docker rebuild of embedded XML libraries, native-component SBOM entries
   and minimum container permissions. Remaining release blockers are tracked in
-  [security review](https://github.com/daozen/opennotelm/blob/main/docs/SECURITY_SUPPORT.md).
+  [security review](docs/SECURITY_SUPPORT.md).
 
 ### Known limitations
 

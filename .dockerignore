@@ -9,7 +9,15 @@ frontend/dist
 .env
 .env.*
 .release-work
+.local-services
 .pytest_cache
 .ruff_cache
 frontend/test-results
 frontend/playwright-report
+
+# Internal documentation is never part of a container build context.
+AGENTS.md
+.private-workspace
+docs/**
+!docs/DEPENDENCIES.json
+!docs/THIRD_PARTY_NOTICES.zh-CN.md

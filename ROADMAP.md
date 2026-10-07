@@ -1,9 +1,9 @@
 # Roadmap
 
-[简体中文](https://github.com/daozen/opennotelm/blob/main/ROADMAP.zh-CN.md)
+[简体中文](ROADMAP.zh-CN.md)
 
 This is a direction, not a delivery-date promise. Current behavior is defined in
-[user guide](https://github.com/daozen/opennotelm/blob/main/docs/USER_GUIDE.md); release status is in [CHANGELOG](https://github.com/daozen/opennotelm/blob/main/CHANGELOG.md).
+[user guide](docs/USER_GUIDE.md); release status is in [CHANGELOG](CHANGELOG.md).
 
 ## Public Beta
 
@@ -27,4 +27,4 @@ The current self-hosted release remains MIT. Possible future offerings include
 managed hosting and enterprise deployment/support. No paid service, support SLA,
 account system or billing integration is currently available. Hosted multi-user
 services would require separate authentication, isolation and privacy design.
-See [licensing and commercial use](https://github.com/daozen/opennotelm/blob/main/docs/LICENSING.md).
+See [licensing and commercial use](docs/LICENSING.md).

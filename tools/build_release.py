@@ -58,7 +58,7 @@ def build(root: Path, output: Path, tag: str) -> list[Path]:
     status = subprocess.check_output(["git", "status", "--porcelain"], cwd=root)
     if status:
         raise ValueError("Commit reviewed changes before creating release assets")
-    errors = check(root, tag)
+    errors = check(root, tag, history=True)
     if errors:
         raise ValueError("Release checks failed: " + "; ".join(errors))
     output.mkdir(parents=True, exist_ok=True)

@@ -2,9 +2,16 @@
 
 [English](CHANGELOG.md) · [GitHub Releases](https://github.com/daozen/opennotelm/releases)
 
-当前应用/包版本为 `0.1.0`，本记录不代表已公开发布。首个候选标签为 `v0.1.0-beta.1`。
+应用/包的基础版本为 `0.1.0`；已发布标签与附件以 GitHub Releases 为准，以下开发改动不代表新版发布。
 
-## 尚未发布：首个公开 0.1 Beta
+
+## 未发布
+
+- 新增有出处的单人/双人 Podcast，约 5/10/20/30/60 分钟目标、台词编辑、逐段恢复、播放及 MP3/ZIP 下载。
+- 新增可选 OpenAI-compatible Speech/Gemini 配置及本地 Qwen3-TTS 部署。
+- 新镜像公开发布前仍需更新准确镜像的安全与许可审核；开发分支不代表已发布新版。
+
+## 0.1 Beta 基线
 
 ### 包含的功能
 
@@ -18,7 +25,7 @@
 - 本地保存、模型密钥加密、默认关闭统计，没有内置项目统计接收服务。
 - MIT 许可、公开贡献/安全政策和版本化发布工具。
 - Docker 重编译并核对底层 XML 库、补充底层组件 SBOM、最小化容器权限。
-  剩余发布阻塞见[安全核查](https://github.com/daozen/opennotelm/blob/main/docs/SECURITY_SUPPORT.md)。
+  剩余发布阻塞见[安全核查](docs/SECURITY_SUPPORT.md)。
 
 ### 已知限制
 

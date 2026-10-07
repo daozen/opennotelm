@@ -2,10 +2,13 @@
 
 import importlib.util
 import io
+import sys
 import tarfile
 from pathlib import Path
 
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 
 spec = importlib.util.spec_from_file_location(
     "release_check", Path(__file__).resolve().parents[2] / "tools/release_check.py"
@@ -20,6 +23,7 @@ spec.loader.exec_module(release)
     [
         "data/book.pdf",
         ".release-work/history-secrets.json",
+        ".local-services/qwen3-tts/model/model.safetensors",
         ".env.production",
         "notes/database.sqlite3",
         "frontend/node_modules/package/index.js",

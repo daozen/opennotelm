@@ -1,8 +1,8 @@
 # 路线图
 
-[English](https://github.com/daozen/opennotelm/blob/main/ROADMAP.md)
+[English](ROADMAP.md)
 
-这是发展方向，不是交付日期承诺。当前能力见 [使用指南](https://github.com/daozen/opennotelm/blob/main/docs/USER_GUIDE.zh-CN.md)，发布状态见[变更记录](https://github.com/daozen/opennotelm/blob/main/CHANGELOG.zh-CN.md)。
+这是发展方向，不是交付日期承诺。当前能力见 [使用指南](docs/USER_GUIDE.zh-CN.md)，发布状态见[变更记录](CHANGELOG.zh-CN.md)。
 
 ## 公开 Beta
 
@@ -23,4 +23,4 @@
 
 当前自托管版本维持 MIT。未来可考虑托管服务、企业部署与支持。
 目前没有上线付费服务、SLA、账户或计费；多用户托管需要另做认证、隔离和隐私设计。
-详见[许可与商业使用](https://github.com/daozen/opennotelm/blob/main/docs/LICENSING.zh-CN.md)。
+详见[许可与商业使用](docs/LICENSING.zh-CN.md)。

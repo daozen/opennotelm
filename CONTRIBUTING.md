@@ -1,12 +1,12 @@
 # Contributing to OpenNoteLM
 
-[简体中文](https://github.com/daozen/opennotelm/blob/main/CONTRIBUTING.zh-CN.md)
+[简体中文](CONTRIBUTING.zh-CN.md)
 
 Bug reports, documentation, translations and focused code contributions are welcome.
 Discuss substantial scope changes in an issue before implementing them. Use the
 [issue templates](https://github.com/daozen/opennotelm/issues/new/choose), synthetic
-examples and safe error codes. Security reports follow [SECURITY](https://github.com/daozen/opennotelm/blob/main/SECURITY.md).
-All project spaces follow our [code of conduct](https://github.com/daozen/opennotelm/blob/main/CODE_OF_CONDUCT.md).
+examples and safe error codes. Security reports follow [SECURITY](SECURITY.md).
+All project spaces follow our [code of conduct](CODE_OF_CONDUCT.md).
 
 ## License and sign-off
 
@@ -21,7 +21,7 @@ git commit -s -m "fix: explain the concrete change"
 The footer is `Signed-off-by: Your Name <your-email>`. Use an identity/email you are
 comfortable putting in a public Git history. A sign-off is a rights certification,
 not a copyright transfer. No CLA is currently required. Dependency-bot-only commits
-are exempt; maintainers still review license changes. See [licensing](https://github.com/daozen/opennotelm/blob/main/docs/LICENSING.md).
+are exempt; maintainers still review license changes. See [licensing](docs/LICENSING.md).
 
 ## Development setup
 

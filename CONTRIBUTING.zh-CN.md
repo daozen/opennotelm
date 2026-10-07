@@ -1,10 +1,10 @@
 # 参与 OpenNoteLM
 
-[English](https://github.com/daozen/opennotelm/blob/main/CONTRIBUTING.md)
+[English](CONTRIBUTING.md)
 
 欢迎问题反馈、文档、翻译和聚焦的代码贡献。较大的范围调整请先通过 Issue 讨论。
-复现请使用自编资料和安全错误码；漏洞走[安全报告](https://github.com/daozen/opennotelm/blob/main/SECURITY.zh-CN.md)，
-社区遵循[行为准则](https://github.com/daozen/opennotelm/blob/main/CODE_OF_CONDUCT.zh-CN.md)。
+复现请使用自编资料和安全错误码；漏洞走[安全报告](SECURITY.zh-CN.md)，
+社区遵循[行为准则](CODE_OF_CONDUCT.zh-CN.md)。
 
 ## 授权与签署
 
@@ -17,7 +17,7 @@ git commit -s -m "fix: explain the concrete change"
 
 签署行是 `Signed-off-by: Your Name <your-email>`。使用你愿意公开的姓名和邮箱。
 DCO 是权利确认，不是版权转让；纯依赖机器人提交豁免，但维护者仍核对许可变化。
-详见[许可与商业使用](https://github.com/daozen/opennotelm/blob/main/docs/LICENSING.zh-CN.md)。
+详见[许可与商业使用](docs/LICENSING.zh-CN.md)。
 
 ## 开发与验证
 
