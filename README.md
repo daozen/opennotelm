@@ -118,8 +118,8 @@ The command above builds from source. See [installation and upgrades](docs/DEPLO
 
 Python 3.12, [uv](https://docs.astral.sh/uv/) and Node.js 24 are the supported development
 toolchain. Setup, meaningful tests and contribution sign-offs are documented in
-[CONTRIBUTING](CONTRIBUTING.md). Architecture and coding-agent handoff start at the
-[documentation index](https://github.com/daozen/opennotelm/blob/main/docs/README.md).
+[CONTRIBUTING](CONTRIBUTING.md). Usage, deployment, privacy and licensing guides are available in the
+[documentation index](docs/README.md).
 
 Bug reports and provider compatibility reports are welcome via
 [Issues](https://github.com/daozen/opennotelm/issues). Use synthetic examples and

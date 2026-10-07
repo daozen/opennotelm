@@ -1,6 +1,6 @@
 # User guide
 
-[简体中文](USER_GUIDE.zh-CN.md) · [Quick start](https://github.com/daozen/opennotelm/blob/main/docs/README.md) · [Installation, backup and recovery](DEPLOYMENT.md)
+[简体中文](USER_GUIDE.zh-CN.md) · [Quick start](../README.md) · [Installation, backup and recovery](DEPLOYMENT.md)
 
 ## Configure models
 
