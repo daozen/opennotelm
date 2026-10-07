@@ -8,10 +8,10 @@ If no versioned image is available, use the source-build instructions.
 版本下载与中英文说明见 Releases 页面。安装时核对标签、附件校验值和镜像摘要；
 没有对应预构建镜像时，使用源码构建步骤。
 
-- Installation and upgrades / 安装升级：[English](https://github.com/daozen/opennotelm/blob/main/docs/DEPLOYMENT.md) · [简体中文](https://github.com/daozen/opennotelm/blob/main/docs/DEPLOYMENT.zh-CN.md)
-- User guide / 使用指南：[English](https://github.com/daozen/opennotelm/blob/main/docs/USER_GUIDE.md) · [简体中文](https://github.com/daozen/opennotelm/blob/main/docs/USER_GUIDE.zh-CN.md)
-- Security / 安全：[English](https://github.com/daozen/opennotelm/blob/main/SECURITY.md) · [简体中文](https://github.com/daozen/opennotelm/blob/main/SECURITY.zh-CN.md)
-- Container support conditions / 容器适用条件：[Review / 核查](https://github.com/daozen/opennotelm/blob/main/docs/SECURITY_SUPPORT.md)
+- Installation and upgrades / 安装升级：[English](DEPLOYMENT.md) · [简体中文](DEPLOYMENT.zh-CN.md)
+- User guide / 使用指南：[English](USER_GUIDE.md) · [简体中文](USER_GUIDE.zh-CN.md)
+- Security / 安全：[English](../SECURITY.md) · [简体中文](../SECURITY.zh-CN.md)
+- Container support conditions / 容器适用条件：[Review / 核查](SECURITY_SUPPORT.md)
 
 This Beta is a single-user application without built-in authentication. Generated
 image text and charts require review, and default image PDFs have no searchable
