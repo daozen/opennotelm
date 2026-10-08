@@ -4,10 +4,12 @@ import { t, useI18n } from './i18n';
 
 export default function DeckSources({
   id,
+  kind = 'deck',
   onOpenSource,
   onOpenKnowledge,
 }: {
   id: string;
+  kind?: 'deck' | 'podcast' | 'mindmap';
   onOpenSource: (sourceId: string, blockId: string) => Promise<void>;
   onOpenKnowledge?: (pageId: string) => void;
 }) {
@@ -27,7 +29,11 @@ export default function DeckSources({
     setLoading(true);
     setError('');
     try {
-      setSources(await api<Sources>(`/decks/${id}/sources`));
+      setSources(
+        await api<Sources>(
+          `/${kind === 'podcast' ? 'podcasts' : kind === 'mindmap' ? 'mindmaps' : 'decks'}/${id}/sources`,
+        ),
+      );
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -41,7 +47,15 @@ export default function DeckSources({
         if (event.currentTarget.open && !loading) void load();
       }}
     >
-      <summary>{t('查看 Deck 来源')}</summary>
+      <summary>
+        {t(
+          kind === 'podcast'
+            ? '查看节目来源'
+            : kind === 'mindmap'
+              ? '查看导图来源'
+              : '查看 Deck 来源',
+        )}
+      </summary>
       {loading && <p role="status">{t('加载中…')}</p>}
       {error && (
         <p className="error" role="alert">

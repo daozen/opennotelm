@@ -102,3 +102,10 @@ The Docker build uses a verified replacement for lxml's embedded XML libraries;
 native `uv sync` does not apply that replacement. Default Compose drops app
 capabilities and prevents privilege escalation; do not remove those controls to
 work around a failed startup. See [security review](SECURITY_SUPPORT.md).
+
+## Audio runtime
+
+Source installations need FFmpeg on the application server for Podcast audio generation
+and model speech tests. Install it with your system package manager and ensure `ffmpeg`
+is on PATH before starting the server. The Dockerfile builds a reduced FFmpeg automatically.
+Qwen3-TTS is an optional separate service; see [setup](QWEN_TTS.md).

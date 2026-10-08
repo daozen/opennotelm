@@ -19,3 +19,14 @@ body-text layer. Back up the complete data directory and master key before upgra
 
 Beta 为无内置鉴权的单用户应用。生成图片中的文字和图表需核对，默认图像 PDF 无可搜索
 正文文字层。升级前备份完整数据目录和加密主密钥。
+
+## Source and versioned downloads / 源码与版本下载
+
+The current source includes Podcasts, interactive mind maps, unified Studio and
+reusable generation instructions. Existing Beta tags and prebuilt images may not
+include these additions. Use a source build to try changes listed under Unreleased;
+check the selected release notes before installing a versioned image.
+
+当前源码新增 Podcast、交互式思维导图、统一 Studio 和历史生成说明。既有 Beta 标签与
+预构建镜像可能不包含这些功能；体验 Unreleased 改动请从源码构建，安装版本镜像前
+请核对所选版本说明。

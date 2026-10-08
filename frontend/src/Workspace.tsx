@@ -1,4 +1,9 @@
 import Modal from './Modal';
+import CreatePodcast, { CreateMindMap } from './CreatePodcast';
+import MindMapView, { mindmapStatus } from './MindMap';
+import ArtifactStudio, { kindLabel, type StudioItem } from './ArtifactStudio';
+import ArtifactDeleteDialog, { artifactPath, type ArtifactKind } from './ArtifactDeleteDialog';
+import PodcastView, { podcastStatus } from './Podcast';
 import { t, useI18n, errorText, errorKey, languages, type UiLanguage } from './i18n';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, FileText, Layers, Plus, RotateCcw, Trash2, X } from 'lucide-react';
@@ -10,6 +15,8 @@ import {
   type KnowledgePage,
   type DeckScope,
   type DeckSummary,
+  type PodcastSummary,
+  type MindMap,
   type SourceNode,
 } from './api';
 import Reader from './Reader';
@@ -19,7 +26,7 @@ import Knowledge from './Knowledge';
 import Transformation from './Transformation';
 import DeckView, { CreateDeck, deckStatus } from './Deck';
 import DeckDeleteDialog from './DeckDeleteDialog';
-import ArtifactBatchDownload from './ArtifactBatchDownload';
+
 import { useGuardedNavigation } from './NavigationGuard';
 import { useNavigation, type Route } from './Navigation';
 
@@ -46,9 +53,13 @@ export default function Workspace({
   const navigate = useGuardedNavigation();
   const [sources, setSources] = useState<Source[]>([]);
   const [pages, setPages] = useState<KnowledgePage[]>([]);
+  const [podcasts, setPodcasts] = useState<PodcastSummary[]>([]);
+  const [podcastCreation, setPodcastCreation] = useState(false);
   const [decks, setDecks] = useState<DeckSummary[]>([]);
   const [deletingDeck, setDeletingDeck] = useState<DeckSummary>();
-  const [deckAction, setDeckAction] = useState<string>();
+  const [mindmaps, setMindmaps] = useState<MindMap[]>([]);
+  const [mapCreation, setMapCreation] = useState(false);
+  const [deletingArtifact, setDeletingArtifact] = useState<StudioItem>();
   const deckRefreshVersion = useRef(0);
   const { route, go } = useNavigation();
   const liveRoute = useRef(route);
@@ -60,6 +71,8 @@ export default function Workspace({
       mounted.current = false;
     };
   }, []);
+  const mindmapId = route.view === 'mindmap' ? route.itemId : undefined;
+  const podcastId = route.view === 'podcast' ? route.itemId : undefined;
   const deckId = route.view === 'deck' ? route.itemId : undefined;
   const knowledgeId = route.view === 'knowledge' ? route.itemId : undefined;
   const libraryTab = route.library ?? 'sources';
@@ -76,6 +89,7 @@ export default function Workspace({
         nodeId: undefined,
         blockId: undefined,
         slideId: undefined,
+        mapNodeId: undefined,
         ...extra,
       },
       { guarded },
@@ -108,10 +122,12 @@ export default function Workspace({
   const refresh = useCallback(async () => {
     const deckVersion = ++deckRefreshVersion.current;
     const version = selectionVersion.current;
-    const [result, knowledgeList, deckList] = await Promise.all([
+    const [result, knowledgeList, deckList, podcastList, mapList] = await Promise.all([
       api<Source[]>(`/notebooks/${notebook.id}/sources`),
       api<KnowledgePage[]>(`/notebooks/${notebook.id}/knowledge`),
       api<DeckSummary[]>(`/notebooks/${notebook.id}/decks`),
+      api<PodcastSummary[]>(`/notebooks/${notebook.id}/podcasts`),
+      api<MindMap[]>(`/notebooks/${notebook.id}/mindmaps`),
     ]);
     if (!mounted.current) return;
     setLoadError('');
@@ -123,7 +139,11 @@ export default function Workspace({
       );
     }
     setPages(knowledgeList);
-    if (deckVersion === deckRefreshVersion.current) setDecks(deckList);
+    if (deckVersion === deckRefreshVersion.current) {
+      setDecks(deckList);
+      setPodcasts(podcastList);
+      setMindmaps(mapList);
+    }
   }, [notebook.id]);
   useEffect(() => {
     void refresh().catch((e) => {
@@ -247,6 +267,84 @@ export default function Workspace({
     await api<Source>(`/sources/${sourceId}`);
     show('source', sourceId, { blockId, library: 'sources' });
   }
+  const artifactItems: StudioItem[] = [
+    ...decks.map((d) => ({
+      id: d.id,
+      kind: 'deck' as const,
+      title: d.title,
+      status: d.status,
+      jobStatus: d.job_status,
+      statusLabel:
+        d.job_status === 'cancelled'
+          ? '已停止'
+          : d.job_status === 'queued'
+            ? '等待生成'
+            : (deckStatus[d.status] ?? d.status),
+      summary: t('{{v1}} 页', { v1: d.slide_count }),
+      createdAt: d.created_at ?? d.updated_at,
+      download_available: d.download_available,
+      resumable: ['failed', 'cancelled'].includes(d.job_status ?? ''),
+    })),
+    ...podcasts.map((p) => ({
+      id: p.id,
+      kind: 'podcast' as const,
+      title: p.title,
+      status: p.status,
+      jobStatus: p.job?.status,
+      statusLabel: podcastStatus[p.job?.status === 'cancelled' ? 'paused' : p.status] ?? '等待生成',
+      summary: t('目标约 {{minutes}} 分钟', { minutes: p.input.target_minutes }),
+      createdAt: p.created_at,
+      download_available: p.download_available,
+      resumable:
+        !!p.job && !['queued', 'running'].includes(p.job.status) && p.status !== 'completed',
+    })),
+    ...mindmaps.map((m) => ({
+      id: m.id,
+      kind: 'mindmap' as const,
+      title: m.title,
+      status: m.status,
+      jobStatus: m.job?.status,
+      statusLabel: mindmapStatus[m.job?.status === 'cancelled' ? 'paused' : m.status] ?? '等待生成',
+      summary: t('{{count}} 个节点', { count: m.node_count ?? 0 }),
+      createdAt: m.created_at,
+      download_available: m.download_available,
+      resumable: ['failed', 'cancelled'].includes(m.job?.status ?? ''),
+    })),
+  ];
+  const creationScope: DeckScope =
+    route.view === 'knowledge' && knowledgeId
+      ? { kind: 'knowledge', knowledge_page_id: knowledgeId }
+      : route.view === 'source' && reader
+        ? route.nodeId
+          ? { kind: 'node', source_id: reader.id, node_id: route.nodeId }
+          : { kind: 'source', source_id: reader.id }
+        : chatScope;
+  const creationLabel = reader?.title ?? t('所选资料');
+  const studio = (compact: boolean) => (
+    <ArtifactStudio
+      notebookId={notebook.id}
+      items={artifactItems}
+      activeKey={route.itemId ? `${route.view}:${route.itemId}` : undefined}
+      filter={route.artifactKind}
+      onFilter={(artifactKind) => go({ ...route, artifactKind }, { guarded: false, replace: true })}
+      onOpen={(item) => show(item.kind, item.id)}
+      onCreate={(kind) => {
+        if (kind === 'deck') setDeckCreation({ scope: creationScope, label: creationLabel });
+        else if (kind === 'podcast') setPodcastCreation(true);
+        else setMapCreation(true);
+      }}
+      onAction={async (item, action) => {
+        await api(`/${artifactPath(item.kind)}/${item.id}/${action}`, { method: 'POST' });
+        await refresh();
+      }}
+      onDelete={(item) => {
+        if (item.kind === 'deck') setDeletingDeck(decks.find((d) => d.id === item.id));
+        else setDeletingArtifact(item);
+      }}
+      canCreate={!!sources.length || !!pages.length}
+      compact={compact}
+    />
+  );
   return (
     <div className="workspace">
       <div className="workspace-top">
@@ -273,6 +371,44 @@ export default function Workspace({
           </select>
         </label>
       </div>
+      <nav className="workspace-view-nav" aria-label={t('主要视图')}>
+        <button
+          className={`button ${route.view === 'chat' ? 'primary' : 'secondary'}`}
+          onClick={() => show('chat')}
+        >
+          {t('对话')}
+        </button>
+        <button
+          className={`button ${route.view === 'artifacts' ? 'primary' : 'secondary'}`}
+          onClick={() => show('artifacts')}
+        >
+          {t('全部产物')}
+        </button>
+        {['deck', 'podcast', 'mindmap'].includes(route.view) && (
+          <label>
+            {t('切换产物')}
+            <select
+              aria-label={t('切换产物')}
+              value={`${route.view}:${route.itemId}`}
+              onChange={(e) => {
+                const [kind, id] = e.target.value.split(':');
+                show(kind as ArtifactKind, id);
+              }}
+            >
+              {artifactItems.map((item) => (
+                <option key={`${item.kind}:${item.id}`} value={`${item.kind}:${item.id}`}>
+                  {kindLabel(item.kind)} · {item.title}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </nav>
+      {batchNotice > 1 && (
+        <p className="help" role="status">
+          {t('已创建 {{count}} 个产物，可分别查看生成进度。', { count: batchNotice })}
+        </p>
+      )}
       {loadError && (
         <div className="error workspace-error" role="alert">
           {t(loadError)}
@@ -292,21 +428,27 @@ export default function Workspace({
           </button>
         </div>
       )}
-      <nav className="workspace-sections" aria-label={t('工作区分区')}>
-        {(['library', 'main', 'studio'] as const).map((panel) => (
-          <button
-            key={panel}
-            type="button"
-            aria-pressed={compactPanel === panel}
-            aria-controls={`workspace-${panel}`}
-            onClick={() => setCompactPanel(panel)}
-            className={`button ${compactPanel === panel ? 'primary' : 'secondary'}`}
-          >
-            {t({ library: '资料与知识', main: '工作区', studio: '演示文稿' }[panel])}
-          </button>
-        ))}
-      </nav>
-      <div className="workspace-columns" data-panel={compactPanel}>
+      {route.view !== 'artifacts' && (
+        <nav className="workspace-sections" aria-label={t('工作区分区')}>
+          {(['library', 'main', 'studio'] as const).map((panel) => (
+            <button
+              key={panel}
+              type="button"
+              aria-pressed={compactPanel === panel}
+              aria-controls={`workspace-${panel}`}
+              onClick={() => setCompactPanel(panel)}
+              className={`button ${compactPanel === panel ? 'primary' : 'secondary'}`}
+            >
+              {t({ library: '资料与知识', main: '工作区', studio: '创作空间' }[panel])}
+            </button>
+          ))}
+        </nav>
+      )}
+      <div
+        className="workspace-columns"
+        data-panel={compactPanel}
+        data-artifacts={route.view === 'artifacts'}
+      >
         <aside id="workspace-library" className="workspace-panel source-panel">
           <nav className="library-tabs" aria-label={t('笔记本内容')}>
             <button
@@ -497,7 +639,34 @@ export default function Workspace({
           )}
         </aside>
         <main id="workspace-main" className="workspace-panel chat-panel">
-          {opening ? (
+          {route.view === 'artifacts' ? (
+            <>
+              <div className="panel-title">
+                <Layers size={20} />
+                <h2>{t('创作空间')}</h2>
+              </div>
+
+              {studio(false)}
+            </>
+          ) : mindmapId ? (
+            <MindMapView
+              key={mindmapId}
+              id={mindmapId}
+              selectedNodeId={route.mapNodeId}
+              onSelectNode={(mapNodeId) =>
+                go({ ...route, mapNodeId }, { guarded: false, replace: true })
+              }
+              onBack={() => show('artifacts')}
+              onChanged={() => void refresh()}
+              onDeleted={() => {
+                setMindmaps((list) => list.filter((m) => m.id !== mindmapId));
+                show('artifacts', undefined, {}, false);
+                void refresh();
+              }}
+              onOpenSource={openSource}
+              onOpenKnowledge={(pageId) => show('knowledge', pageId)}
+            />
+          ) : opening ? (
             <p className="loading-state" role="status">
               {t('正在打开正文…')}
             </p>
@@ -508,15 +677,31 @@ export default function Workspace({
                 {t('返回对话')}
               </button>
             </div>
+          ) : podcastId ? (
+            <PodcastView
+              key={podcastId}
+              id={podcastId}
+              onBack={() => show('artifacts')}
+              backLabel={t('返回创作空间')}
+              onChanged={() => void refresh()}
+              onDeleted={() => {
+                setPodcasts((current) => current.filter((podcast) => podcast.id !== podcastId));
+                show('artifacts', undefined, {}, false);
+                void refresh();
+              }}
+              onOpenSource={openSource}
+              onOpenKnowledge={(pageId) => show('knowledge', pageId)}
+            />
           ) : deckId ? (
             <DeckView
               key={deckId}
               id={deckId}
-              onBack={() => show('chat')}
+              onBack={() => show('artifacts')}
+              backLabel={t('返回创作空间')}
               onChanged={() => void refresh()}
               onDeleted={() => {
                 setDecks((current) => current.filter((deck) => deck.id !== deckId));
-                show('chat', undefined, {}, false);
+                show('artifacts', undefined, {}, false);
                 void refresh();
               }}
               selectedSlideId={route.slideId}
@@ -605,98 +790,15 @@ export default function Workspace({
         <aside id="workspace-studio" className="workspace-panel studio-panel">
           <div className="panel-title">
             <Layers size={18} />
-            <h3>{t('演示文稿')}</h3>
+            <h3>{t('创作空间')}</h3>
           </div>
-          <div className="studio-create">
-            {!sources.length && !pages.length && (
-              <p className="help">{t('先添加资料，再生成演示文稿。')}</p>
-            )}
-            <button
-              className="button secondary"
-              disabled={!sources.length && !pages.length}
-              onClick={() => setDeckCreation({ scope: { kind: 'selected' }, label: t('所选资料') })}
-            >
-              <Plus size={15} /> {t('生成 Visual Deck')}
-            </button>
-          </div>
-          <div className="deck-library">
-            {batchNotice > 1 && (
-              <p className="help" role="status">
-                {t('已创建 {{count}} 份 Deck，可分别查看生成进度。', { count: batchNotice })}
-              </p>
-            )}
-            <ArtifactBatchDownload
-              notebookId={notebook.id}
-              items={decks.map((deck) => ({ ...deck, kind: 'deck' as const }))}
-              renderItem={(deck, selection) => {
-                const active = ['queued', 'running'].includes(deck.job_status ?? '');
-                const stopped =
-                  !active && (deck.status === 'paused' || deck.job_status === 'cancelled');
-                return (
-                  <div key={deck.id} className={`deck-card${deckId === deck.id ? ' active' : ''}`}>
-                    {selection}
-                    <button className="deck-open" onClick={() => show('deck', deck.id)}>
-                      <strong>{deck.title}</strong>
-                      {deck.batch_label && (
-                        <small className="deck-origin">{deck.batch_label}</small>
-                      )}
-                      <small>
-                        {t('{{v1}} 页 · {{v2}}', {
-                          v1: deck.slide_count,
-                          v2: t(
-                            stopped
-                              ? '已停止'
-                              : deck.job_status === 'queued'
-                                ? '等待生成'
-                                : (deckStatus[deck.status] ?? deck.status),
-                          ),
-                        })}
-                      </small>
-                    </button>
-                    <div className="deck-card-actions">
-                      {(active || stopped) && (
-                        <button
-                          className="button ghost"
-                          disabled={deckAction === deck.id}
-                          onClick={async () => {
-                            setDeckAction(deck.id);
-                            setError('');
-                            try {
-                              await api(`/decks/${deck.id}/${active ? 'stop' : 'resume'}`, {
-                                method: 'POST',
-                              });
-                              await refresh();
-                            } catch (e) {
-                              setError((e as Error).message);
-                            } finally {
-                              setDeckAction(undefined);
-                            }
-                          }}
-                        >
-                          {t(active ? '停止生成' : '继续生成')}
-                        </button>
-                      )}
-                      <button
-                        className="button ghost danger-text"
-                        disabled={deckAction === deck.id}
-                        aria-label={t('删除 Deck · {{title}}', { title: deck.title })}
-                        onClick={() => setDeletingDeck(deck)}
-                      >
-                        <Trash2 size={14} />
-                        {t('删除')}
-                      </button>
-                    </div>
-                  </div>
-                );
-              }}
-            />
-          </div>
-          {!decks.length && (
-            <div className="empty-panel">
-              <Layers size={28} />
-              <h4>{t('将理解变成表达')}</h4>
-              <p>{t('基于资料沉淀知识，再生成用于理解与分享的 Visual Deck。')}</p>
-            </div>
+          {route.view !== 'artifacts' && (
+            <>
+              <button className="button ghost" onClick={() => show('artifacts')}>
+                {t('打开完整创作空间')}
+              </button>
+              {studio(true)}
+            </>
           )}
         </aside>
       </div>
@@ -707,9 +809,59 @@ export default function Workspace({
           onClose={() => setDeletingDeck(undefined)}
           onDeleted={() => {
             if (liveRoute.current.view === 'deck' && liveRoute.current.itemId === deletingDeck.id)
-              show('chat', undefined, {}, false);
+              show('artifacts', undefined, {}, false);
             setDecks((current) => current.filter((deck) => deck.id !== deletingDeck.id));
             setDeletingDeck(undefined);
+            void refresh();
+          }}
+        />
+      )}
+      {deletingArtifact && (
+        <ArtifactDeleteDialog
+          kind={deletingArtifact.kind}
+          id={deletingArtifact.id}
+          title={deletingArtifact.title}
+          onClose={() => setDeletingArtifact(undefined)}
+          onDeleted={() => {
+            if (liveRoute.current.itemId === deletingArtifact.id)
+              show('artifacts', undefined, {}, false);
+            setPodcasts((list) => list.filter((p) => p.id !== deletingArtifact.id));
+            setMindmaps((list) => list.filter((m) => m.id !== deletingArtifact.id));
+            setDeletingArtifact(undefined);
+            void refresh();
+          }}
+        />
+      )}
+      {mapCreation && (
+        <CreateMindMap
+          notebookId={notebook.id}
+          initialScope={creationScope}
+          initialLabel={creationLabel}
+          initialLanguage={outputLanguage}
+          sources={sources}
+          pages={pages}
+          onClose={() => setMapCreation(false)}
+          onCreated={(m, count = 1) => {
+            setMapCreation(false);
+            setBatchNotice(count);
+            show('mindmap', m.id);
+            void refresh();
+          }}
+        />
+      )}
+      {podcastCreation && (
+        <CreatePodcast
+          notebookId={notebook.id}
+          initialScope={creationScope}
+          initialLabel={creationLabel}
+          initialLanguage={outputLanguage}
+          sources={sources}
+          pages={pages}
+          onClose={() => setPodcastCreation(false)}
+          onCreated={(p, count = 1) => {
+            setBatchNotice(count);
+            setPodcastCreation(false);
+            show('podcast', p.id);
             void refresh();
           }}
         />

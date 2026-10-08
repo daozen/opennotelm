@@ -34,7 +34,7 @@ test('first setup, notebook CRUD, reader shell, and persisted reload', async ({
   await expect(page.getByRole('heading', { name: '长期阅读', exact: true })).toBeVisible();
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await page.getByRole('button', { name: '打开 长期阅读', exact: true }).click();
-  await expect(page.getByRole('heading', { name: '演示文稿', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '创作空间', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '笔记本', exact: true }).click();
   await page.getByRole('button', { name: '管理 长期阅读', exact: true }).click();
   await page.getByRole('button', { name: '编辑名称与描述' }).click();

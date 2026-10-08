@@ -8,12 +8,14 @@ import threading
 from .errors import AppError
 
 OWNED = {
+    "podcasts": "podcasts",
+    "mindmaps": "mindmaps",
     "sources": "sources",
     "assets": "assets",
     "renders": "slide_renders",
     "exports": "pdf_exports",
 }
-OWNED_PATH = re.compile(r"(?:sources|assets|renders|exports)/[a-f0-9]{32}\Z")
+OWNED_PATH = re.compile(r"(?:sources|assets|renders|exports|podcasts|mindmaps)/[a-f0-9]{32}\Z")
 
 
 def contains_id(value, identity):
@@ -26,34 +28,35 @@ def contains_id(value, identity):
 
 def discard_source_caches(conn, source_id):
     affected_decks = set()
-    for row in conn.execute(
-        "SELECT id,source_scope_json,understanding_json,knowledge_snapshot_json FROM decks"
-    ):
-        scope = json.loads(row["source_scope_json"])
-        understanding = json.loads(row["understanding_json"] or "null")
-        snapshot = json.loads(row["knowledge_snapshot_json"] or "null")
-        citations = list((snapshot or {}).get("citations", {}).values())
-        grounded_in_source = any(
-            conn.execute(
-                "SELECT 1 FROM citation_spans WHERE citation_id=? AND source_id=?",
-                (citation, source_id),
-            ).fetchone()
-            for citation in citations
-        )
-        if (
-            contains_id(scope, source_id)
-            or contains_id(understanding, source_id)
-            or grounded_in_source
+    for table in ("decks", "podcasts", "mindmaps"):
+        for row in conn.execute(
+            f"SELECT id,source_scope_json,understanding_json,knowledge_snapshot_json FROM {table}"
         ):
-            affected_decks.add(row["id"])
-            if understanding:
-                for packet in understanding["evidence"]:
-                    if contains_id(packet["spans"], source_id):
-                        packet["text"] = ""
+            scope = json.loads(row["source_scope_json"])
+            understanding = json.loads(row["understanding_json"] or "null")
+            snapshot = json.loads(row["knowledge_snapshot_json"] or "null")
+            citations = list((snapshot or {}).get("citations", {}).values())
+            grounded_in_source = any(
                 conn.execute(
-                    "UPDATE decks SET understanding_json=? WHERE id=?",
-                    (json.dumps(understanding), row["id"]),
-                )
+                    "SELECT 1 FROM citation_spans WHERE citation_id=? AND source_id=?",
+                    (citation, source_id),
+                ).fetchone()
+                for citation in citations
+            )
+            if (
+                contains_id(scope, source_id)
+                or contains_id(understanding, source_id)
+                or grounded_in_source
+            ):
+                affected_decks.add(row["id"])
+                if understanding:
+                    for packet in understanding["evidence"]:
+                        if contains_id(packet["spans"], source_id):
+                            packet["text"] = ""
+                    conn.execute(
+                        f"UPDATE {table} SET understanding_json=? WHERE id=?",
+                        (json.dumps(understanding), row["id"]),
+                    )
     for job in conn.execute("SELECT * FROM jobs").fetchall():
         if (
             job["source_id"] == source_id

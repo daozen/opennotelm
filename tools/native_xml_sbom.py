@@ -81,11 +81,43 @@ def enrich(bom: dict, report: dict) -> dict:
     return bom
 
 
+def enrich_audio(bom: dict, audio: dict) -> dict:
+    if audio.get("restricted_audio") is not True:
+        raise ValueError("Audio runtime has not passed the reduced-build probe")
+    source = audio["source"]
+    ref = f"pkg:generic/ffmpeg@{source['version']}?qualifier=opennotelm-audio"
+    if any(c.get("bom-ref") == ref for c in bom["components"]):
+        raise ValueError("Audio component already recorded")
+    bom["components"].append(
+        {
+            "bom-ref": ref,
+            "type": "application",
+            "name": "ffmpeg",
+            "version": source["version"],
+            "purl": ref,
+            "cpe": f"cpe:2.3:a:ffmpeg:ffmpeg:{source['version']}:*:*:*:*:*:*:*",
+            "licenses": [{"license": {"id": source["license"]}}],
+            "hashes": [{"alg": "SHA-256", "content": audio["binary_sha256"]}],
+            "externalReferences": [
+                {
+                    "type": "distribution",
+                    "url": source["url"],
+                    "hashes": [{"alg": "SHA-256", "content": source["sha256"]}],
+                }
+            ],
+        }
+    )
+    return bom
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sbom", type=Path, required=True)
     parser.add_argument("--native", type=Path, required=True)
+    parser.add_argument("--audio", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     result = enrich(json.loads(args.sbom.read_text()), json.loads(args.native.read_text()))
+    if args.audio:
+        result = enrich_audio(result, json.loads(args.audio.read_text()))
     args.output.write_text(json.dumps(result, indent=2) + "\n")

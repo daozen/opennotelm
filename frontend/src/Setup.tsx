@@ -1,4 +1,5 @@
 import Modal from './Modal';
+import ModelConcurrencySettings from './ModelConcurrencySettings';
 import { t, useI18n } from './i18n';
 import { useState } from 'react';
 import { Check, ChevronRight, LoaderCircle, Settings2, X } from 'lucide-react';
@@ -15,8 +16,9 @@ const labels: Record<ModelRole, [string, string]> = {
   language: ['语言模型', '用于问答、知识整理和幻灯片规划'],
   embedding: ['Embedding 模型', '用于建立索引和检索原始资料'],
   image: ['图片模型', '用于生成帮助理解内容的视觉素材'],
+  speech: ['语音模型（可选）', '用于 Podcast 语音合成；不影响其他功能'],
 };
-const roles: ModelRole[] = ['language', 'embedding', 'image'];
+const roles: ModelRole[] = ['language', 'embedding', 'image', 'speech'];
 
 function ModelForm({
   role,
@@ -34,6 +36,9 @@ function ModelForm({
   const [key, setKey] = useState('');
   const [model, setModel] = useState(saved?.model_id ?? '');
   const [context, setContext] = useState(saved?.max_context_tokens ?? 16000);
+  const [protocol, setProtocol] = useState(String(saved?.capabilities.speech_protocol ?? 'openai'));
+  const [voiceA, setVoiceA] = useState(String(saved?.capabilities.voice_a ?? 'alloy'));
+  const [voiceB, setVoiceB] = useState(String(saved?.capabilities.voice_b ?? 'nova'));
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [modelCount, setModelCount] = useState(0);
@@ -49,6 +54,7 @@ function ModelForm({
     api_key_source: sameEndpoint && !key ? 'language' : null,
     model_id: model || 'discovery',
     max_context_tokens: context,
+    ...(role === 'speech' ? { speech_protocol: protocol, voice_a: voiceA, voice_b: voiceB } : {}),
   });
   async function discover() {
     setBusy('discover');
@@ -176,6 +182,53 @@ function ModelForm({
             onChange={(e) => setContext(Number(e.target.value))}
           />
         </label>
+      )}
+      {role === 'speech' && (
+        <>
+          <label>
+            {t('语音接口类型')}
+            <select value={protocol} onChange={(e) => setProtocol(e.target.value)}>
+              <option value="openai">OpenAI-compatible Speech</option>
+              <option value="gemini">Gemini Native Speech (Interactions)</option>
+            </select>
+          </label>
+          <label>
+            {t('声音 A')}
+            <input
+              required
+              maxLength={100}
+              value={voiceA}
+              onChange={(e) => setVoiceA(e.target.value)}
+              placeholder="Ryan / alloy"
+            />
+          </label>
+          <label>
+            {t('声音 B')}
+            <input
+              required
+              maxLength={100}
+              value={voiceB}
+              onChange={(e) => setVoiceB(e.target.value)}
+              placeholder="Vivian / nova"
+            />
+          </label>
+          <p className="help">
+            {t('填写服务支持的声音 ID。兼容接口按角色分段合成，原生接口可在一段中合成对话。')}
+          </p>
+          <p className="help">
+            {t(
+              '语音语言取决于服务能力。Qwen3-TTS 不支持阿拉伯语和印地语；可改用支持这些语言的服务。',
+            )}
+          </p>
+          <ModelConcurrencySettings
+            endpoint="/settings/models/speech-generation"
+            sectionLabel="语音并发设置"
+            label="同时合成的音频段数"
+            help="本地单个语音模型建议设为 1；提高并发前请确认服务容量。新节目使用保存的设置。"
+            saveLabel="保存语音并发设置"
+            defaultValue={2}
+          />
+        </>
       )}
       {role === 'image' && <ImageGenerationSettings />}
       {role === 'language' && (

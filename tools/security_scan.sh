@@ -37,7 +37,7 @@ while IFS= read -r -d '' file; do
   [[ -f "$file" ]] || continue
   [[ ! -L "$file" ]] || { printf 'Refusing symlink.\n' >&2; exit 2; }
   case "$file" in
-    data/*|*/data/*|.release-work/*|*/.release-work/*|.venv/*|*/.venv/*|node_modules/*|*/node_modules/*|dist/*|*/dist/*|.e2e-data*|*/.e2e-data*|.docker-acceptance-data*|*/.docker-acceptance-data*)
+    data/*|*/data/*|.local-services/*|*/.local-services/*|.release-work/*|*/.release-work/*|.venv/*|*/.venv/*|node_modules/*|*/node_modules/*|dist/*|*/dist/*|.e2e-data*|*/.e2e-data*|.docker-acceptance-data*|*/.docker-acceptance-data*)
       printf 'Refusing private file.\n' >&2; exit 2 ;;
     .env|.env.*|*/.env|*/.env.*)
       [[ "$(basename "$file")" = .env.example ]] || { printf 'Refusing private file.\n' >&2; exit 2; } ;;

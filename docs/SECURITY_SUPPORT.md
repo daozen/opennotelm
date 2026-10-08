@@ -16,6 +16,7 @@ and does not receive the Docker-specific replacement.
 
 | Component | Required evidence |
 |---|---|
+| Audio | Pinned reduced FFmpeg source, exact binary hash, only file/pipe protocols and audio demuxers/decoders; no XML, SVG, graphics or network linkage. |
 | XML, ACL and Expat | Actual fixed binary identity, installed checksums and loaded/compiled library versions. |
 | util-linux and ncurses | Affected management executables absent; no privileged mount or fstab authorization path. |
 | CUPS, systemd and Perl | Affected service/module components absent; client libraries do not imply server presence. |
@@ -50,3 +51,20 @@ CPU 渲染。安全门禁结合原始扫描、准确厂商修复和实际运行�
 结论绑定准确漏洞、包/代码/锁文件、策略及运行条件。新漏洞、配置变化、证据缺失或
 **2026-11-04** 复核到期必须重新评估，不能仅重算哈希放行。特权、GPU/X11、设备或任意
 代码挂载、自定义渲染器不沿用结论；发布架构需单独验证。
+
+## Reduced audio runtime / 精简音频工具
+
+Source-built containers compile FFmpeg from a SHA-256-pinned original source archive.
+Only Speech audio formats (WAV PCM, MP3, FLAC and Ogg Vorbis/Opus), owned WAV concatenation
+and MP3 export are enabled. The runtime probe rejects extra protocols, formats,
+decoders or linked libraries. It records the binary/source identities in the SBOM;
+release attachments retain the original FFmpeg source and LGPL notices. This is a
+restricted build, not the general-purpose system FFmpeg package or a claim about all
+upstream vulnerabilities. New findings or source/configuration drift require review.
+Native installations still use the user's own FFmpeg build.
+
+源码构建的容器以固定 SHA-256 的 FFmpeg 原始源码编译，仅启用语音所需的 WAV PCM、
+MP3、FLAC、Ogg Vorbis/Opus、内部 WAV 合并与 MP3 导出。运行探针拒绝额外协议、格式、
+解码器或链接库，SBOM 记录准确二进制和来源；发布附件保留原始源码及 LGPL 声明。
+这是受限音频构建，不等同通用系统 FFmpeg，也不保证所有上游漏洞均已修复；新漏洞或
+代码/配置变化仍需复核。原生安装继续使用用户自行安装的 FFmpeg。

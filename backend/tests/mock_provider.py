@@ -3,7 +3,9 @@
 import asyncio
 import copy
 
+from audio_factory import sample_wav
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import Response
 from grounded_provider import completion, embedding
 from image_factory import image_response
 
@@ -64,3 +66,10 @@ async def images(payload: dict):
     ):
         raise HTTPException(503, "Synthetic image failure")
     return image_response(payload.get("size"))
+
+
+@app.post("/v1/audio/speech")
+async def speech(payload: dict):
+    if payload.get("model") == "slow-speech":
+        await asyncio.sleep(1)
+    return Response(sample_wav(), media_type="audio/wav")

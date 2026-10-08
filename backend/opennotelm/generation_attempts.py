@@ -11,6 +11,14 @@ from .error_codes import safe_error_code
 from .output_repair import EvidenceValidationError, FieldValidationError
 
 SAFE_FIELDS = {
+    "sections",
+    "nodes",
+    "parent_id",
+    "detail",
+    "turns",
+    "speaker",
+    "focus",
+    "title",
     "slides",
     "pages",
     "form",
@@ -63,6 +71,11 @@ REASONS = {
     "evidence",
     "json_invalid",
     "semantic",
+    "citation_primary_missing",
+    "output_truncated",
+    "output_tokens",
+    "output_bytes",
+    "synthesis_insufficient",
     "art_order",
     "art_unsupported_form",
     "art_variety",
@@ -96,6 +109,13 @@ SCHEMA_CODES = {
     "bool_parsing",
 }
 SEMANTIC_REASONS = {
+    "Solo narration uses speaker A only": "podcast_speaker",
+    "Use only supplied evidence IDs": "evidence",
+    "Source content requires passage evidence IDs": "citation_missing",
+    "Background, analogies and conversation must not claim source citations": "citation_basis",
+    "Put evidence IDs in evidence_ids, never in spoken text": "podcast_spoken_citation",
+    "Each section needs source-grounded content": "citation_missing",
+    "The user requested source-only content; remove outside elaboration": "source_only",
     "This element requires structured items": "element_items",
     "This element requires text": "element_text",
     "Element IDs must be unique": "element_ids",
@@ -159,7 +179,9 @@ def safe_validation(errors):
                 else "evidence"
                 if isinstance(error, EvidenceValidationError)
                 else "copy_budget"
-                if isinstance(error, FieldValidationError) and error.progress is not None
+                if isinstance(error, FieldValidationError)
+                and error.progress is not None
+                and error.reason not in ("output_tokens", "output_bytes")
                 else SEMANTIC_REASONS.get(str(error), getattr(error, "reason", "semantic"))
             )
             issue = {

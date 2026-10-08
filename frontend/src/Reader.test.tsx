@@ -294,7 +294,7 @@ test('real chapter navigation continues from the footer, stops at boundaries and
     { kind: 'node', source_id: 'book', node_id: 'second' },
     '第二章',
   );
-  expect(view.container.querySelector('article')).toHaveFocus();
+  await waitFor(() => expect(view.container.querySelector('article')).toHaveFocus());
 });
 
 test('PDF pages are separate page controls; real bookmarks alone populate the table of contents', async () => {

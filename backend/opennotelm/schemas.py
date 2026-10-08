@@ -10,7 +10,7 @@ from .config import (
 )
 from .languages import OutputLanguage
 
-ModelRole = Literal["language", "embedding", "image"]
+ModelRole = Literal["language", "embedding", "image", "speech"]
 
 
 class StrictModel(BaseModel):
@@ -36,6 +36,9 @@ class ModelInput(StrictModel):
     api_key_source: ModelRole | None = None
     model_id: str = Field(min_length=1, max_length=200)
     max_context_tokens: int = Field(default=16000, ge=2048, le=2_000_000)
+    speech_protocol: Literal["openai", "gemini"] = "openai"
+    voice_a: str = Field(default="alloy", min_length=1, max_length=100)
+    voice_b: str = Field(default="nova", min_length=1, max_length=100)
 
     @field_validator("base_url")
     @classmethod
@@ -52,11 +55,11 @@ class ModelInput(StrictModel):
             raise ValueError("Use an http(s) API base URL without credentials, query or fragment")
         return value.strip().rstrip("/")
 
-    @field_validator("model_id")
+    @field_validator("model_id", "voice_a", "voice_b")
     @classmethod
     def clean_model(cls, value: str) -> str:
         if not value.strip():
-            raise ValueError("Model ID cannot be blank")
+            raise ValueError("Model ID and voices cannot be blank")
         return value.strip()
 
 
@@ -77,6 +80,10 @@ class TaskConcurrencyInput(StrictModel):
 
 
 class ModelRequestConcurrencyInput(StrictModel):
+    concurrency: int = Field(strict=True, ge=1, le=20)
+
+
+class SpeechGenerationSettingsInput(StrictModel):
     concurrency: int = Field(strict=True, ge=1, le=20)
 
 

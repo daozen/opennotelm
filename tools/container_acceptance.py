@@ -26,7 +26,7 @@ with sqlite3.connect(root / 'app.db') as db:
     assert active.fetchone()[0] == 0
 assert os.getuid() == 10001
 files = {}
-for folder in ('sources', 'assets', 'renders', 'exports', 'secrets'):
+for folder in ('sources', 'assets', 'renders', 'exports', 'podcasts', 'mindmaps', 'secrets'):
     for path in sorted((root / folder).rglob('*')):
         if path.is_file():
             files[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -114,7 +114,16 @@ def upload(notebook_id, filename):
     return source_id
 
 
-def snapshots(notebook_id, source_ids, knowledge_id, deck_id, batch_deck_ids=(), stopped_id=None):
+def snapshots(
+    notebook_id,
+    source_ids,
+    knowledge_id,
+    deck_id,
+    batch_deck_ids=(),
+    stopped_id=None,
+    podcast_id=None,
+    mindmap_id=None,
+):
     paths = [
         "/settings/models",
         "/settings/models/image-generation",
@@ -148,6 +157,26 @@ def snapshots(notebook_id, source_ids, knowledge_id, deck_id, batch_deck_ids=(),
         assert value["available"]
         values[path] = value
     downloads = {}
+    if podcast_id:
+        episode = request(f"/podcasts/{podcast_id}")
+        assert episode["status"] == "completed" and episode["download_available"]
+        values[f"/podcasts/{podcast_id}"] = episode
+        downloads["podcast:" + podcast_id] = f"/api/podcasts/{podcast_id}/audio"
+        for segment in episode["segments"]:
+            for citation_id in segment["citations"].values():
+                values[f"/citations/{citation_id}"] = request(f"/citations/{citation_id}")
+    if mindmap_id:
+        mindmap = request(f"/mindmaps/{mindmap_id}")
+        assert mindmap["status"] == "completed" and mindmap["download_available"]
+        assert len(mindmap["tree"]["nodes"]) >= 3 and mindmap["citations"]
+        values[f"/mindmaps/{mindmap_id}"] = mindmap
+        values[f"/mindmaps/{mindmap_id}/sources"] = request(f"/mindmaps/{mindmap_id}/sources")
+        for citation_id in mindmap["citations"].values():
+            citation = request(f"/citations/{citation_id}")
+            assert citation["available"]
+            values[f"/citations/{citation_id}"] = citation
+        downloads["mindmap-markdown:" + mindmap_id] = f"/api/mindmaps/{mindmap_id}/download"
+        downloads["mindmap-json:" + mindmap_id] = f"/api/mindmaps/{mindmap_id}/download?format=json"
     for deck in decks:
         downloads["pdf:" + deck["id"]] = deck["pdf_export"]["download_url"]
         for slide in deck["slides"]:
@@ -156,10 +185,11 @@ def snapshots(notebook_id, source_ids, knowledge_id, deck_id, batch_deck_ids=(),
         for image in values[f"/sources/{source_id}"]["metadata"].get("images", []):
             if image.get("image_url"):
                 downloads["source-image:" + image["id"]] = image["image_url"]
-    hashes = {
-        key: hashlib.sha256(request(url.removeprefix("/api"))).hexdigest()
-        for key, url in downloads.items()
-    }
+    hashes = {}
+    for key, url in downloads.items():
+        payload = request(url.removeprefix("/api"))
+        raw = json.dumps(payload, sort_keys=True).encode() if isinstance(payload, dict) else payload
+        hashes[key] = hashlib.sha256(raw).hexdigest()
     return values, downloads, hashes
 
 
@@ -256,8 +286,29 @@ def prepare(state_path):
     )
     paused = request(f"/decks/{stopped['id']}/stop", {})
     assert paused["status"] == "paused" and paused["job"]["status"] == "cancelled"
+    podcast = request(
+        f"/notebooks/{notebook_id}/podcasts",
+        {
+            "scope": {"kind": "source", "source_id": source_ids[3]},
+            "target_minutes": 5,
+            "language": "en",
+        },
+    )
+    wait_job(podcast["job"])
+    mindmap = request(
+        f"/notebooks/{notebook_id}/mindmaps",
+        {"scope": {"kind": "source", "source_id": source_ids[3]}, "language": "en"},
+    )
+    wait_job(mindmap["job"])
     values, downloads, hashes = snapshots(
-        notebook_id, source_ids, knowledge_id, deck["id"], batch_deck_ids, stopped["id"]
+        notebook_id,
+        source_ids,
+        knowledge_id,
+        deck["id"],
+        batch_deck_ids,
+        stopped["id"],
+        podcast["id"],
+        mindmap["id"],
     )
     pdf = request(after["pdf_export"]["download_url"].removeprefix("/api"))
     assert pdf.startswith(b"%PDF-")
@@ -274,6 +325,8 @@ def prepare(state_path):
                 batch_request=batch_request,
                 batch_deck_ids=batch_deck_ids,
                 stopped_deck_id=stopped["id"],
+                podcast_id=podcast["id"],
+                mindmap_id=mindmap["id"],
                 snapshots=values,
                 downloads=downloads,
                 hashes=hashes,
@@ -292,6 +345,7 @@ def prepare(state_path):
                 "slides": 15,
                 "batch_decks": 2,
                 "stopped_decks": 1,
+                "mindmaps": 1,
                 "snapshots": len(values),
             }
         )
@@ -310,14 +364,16 @@ def verify(state_path):
         state["deck_id"],
         state["batch_deck_ids"],
         state.get("stopped_deck_id"),
+        state.get("podcast_id"),
+        state.get("mindmap_id"),
     )
     assert values == state["snapshots"], "API state changed after recreation"
     assert downloads == state["downloads"]
     assert hashes == state["hashes"], "Persisted asset/PDF bytes changed after recreation"
     files = container_files()
     assert files == state["files"], "Persisted files changed after recreation"
-    # All three roles must still decrypt the persisted key and reach the provider.
-    for role in ("language", "embedding", "image"):
+    # All four roles must still decrypt the persisted key and reach the provider.
+    for role in ("language", "embedding", "image", "speech"):
         result = request(
             "/settings/models/discover",
             dict(role=role, base_url=PROVIDER, model_id="test-model", use_saved_key=True),
@@ -330,7 +386,9 @@ def verify(state_path):
                 "snapshots": len(values),
                 "download_hashes": len(hashes),
                 "persisted_files": len(files),
-                "saved_secrets_decrypted": 3,
+                "saved_secrets_decrypted": 4,
+                "podcast_audio_preserved": bool(state.get("podcast_id")),
+                "mindmap_tree_and_exports_preserved": bool(state.get("mindmap_id")),
                 "batch_retry_reused": True,
                 "stopped_deck_preserved": bool(state.get("stopped_deck_id")),
             }

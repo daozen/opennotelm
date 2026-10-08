@@ -9,9 +9,20 @@ authoritative on GitHub Releases; development changes below are not a new releas
 
 ## Unreleased
 
+- Build a reduced, source-pinned container audio runtime with matching source/notices, SBOM metadata and strict format/linkage checks.
+
 - Add source-linked solo/dialogue Podcasts with approximate 5/10/20/30/60-minute
   targets, editable scripts, checkpointed speech, playback and MP3/ZIP downloads.
 - Add optional OpenAI-compatible Speech/Gemini configuration and local Qwen3-TTS setup.
+- Add source-linked interactive mind maps, chapter batches, focus/outline views,
+  pointer-centered wheel/trackpad zoom and SVG/Markdown/JSON exports.
+- Unify artifact creation, search, filtering, switching and batch downloads in Studio.
+- Reuse previous generation instructions and view the original request on each artifact.
+- Preserve completed work, citations and original sources across stop/resume/delete.
+- Upgrades apply ordered migrations for Podcasts and mind maps. Back up the complete
+  data directory and master key first; downgrades require matching code and data.
+- These changes are available from source on main once merged. Existing version tags
+  and prebuilt images keep their original feature set; no new image release is implied.
 - New public images require an updated security and license review for FFmpeg.
 
 ## 0.1 Beta baseline

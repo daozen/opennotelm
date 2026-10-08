@@ -186,14 +186,14 @@ test('stop queued and running Decks, resume saved pages, preview on tablets and 
     expect((await request.get(`/api/decks/${queued.id}`)).ok()).toBeTruthy();
     await viewer.getByRole('button', { name: '删除 Deck', exact: true }).click();
     await page.getByRole('button', { name: '确认删除 Deck', exact: true }).click();
-    await expect(page).toHaveURL(new RegExp(`/notebooks/${notebook.id}$`));
+    await expect(page).toHaveURL(new RegExp(`/notebooks/${notebook.id}/artifacts$`));
     expect((await request.get(`/api/decks/${queued.id}`)).status()).toBe(404);
     expect((await request.get(ready.pdf_export!.download_url)).ok()).toBeTruthy();
     // Studio also provides deletion without opening the Deck.
     await expect(page.locator('.deck-card')).toHaveCount(1);
     await page
       .locator('.deck-card')
-      .getByRole('button', { name: /^删除 Deck ·/ })
+      .getByRole('button', { name: /^删除产物 ·/ })
       .click();
     await page.getByRole('button', { name: '确认删除 Deck', exact: true }).click();
     await expect(page.locator('.deck-card')).toHaveCount(0);

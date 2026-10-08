@@ -4,9 +4,10 @@
 
 Turn books, documents and web articles into understanding—and into visual stories
 you can share. OpenNoteLM is a local-first, self-hosted AI notebook with cited
-answers, reusable knowledge pages and illustrated **Visual Decks**.
+answers, reusable knowledge pages, illustrated **Visual Decks**, **Podcasts** and
+interactive **mind maps**.
 
-**Read → ask with citations → build knowledge → generate a Visual Deck → export PDF**
+**Read → ask with citations → build knowledge → create Decks, Podcasts and mind maps**
 
 MIT licensed. Bring your own language, embedding and image services. No account
 required. An independent project, not affiliated with Google or NotebookLM.
@@ -53,6 +54,15 @@ and original source.*
 - **Read and trace:** real chapter trees, continuous chapter/page navigation and
   answers linked to relevant original passages. Save answers into knowledge pages,
   edit them and explicitly update them as your understanding grows.
+- **Listen to your sources:** source-linked solo or two-person Podcasts,
+  approximate 5/10/20/30/60-minute targets, editable scripts, resumable audio, playback and MP3 downloads.
+  Bring an optional Speech service or [run Qwen3-TTS locally](docs/QWEN_TTS.md).
+- **Map the ideas:** generate source-linked mind maps from documents, chapters or
+  knowledge pages. Explore explanations and citations, collapse branches, pan and
+  zoom, or export SVG, Markdown and JSON.
+- **One Studio for your artifacts:** search, filter, switch between artifact types
+  and batch-download ready files. Reuse previous generation instructions and inspect
+  the original request on saved artifacts.
 - **Use your language:** twelve interface and generation languages, Arabic RTL,
   browser-derived first-use defaults and saved preferences. Existing content stays intact.
 - **Keep your workspace:** sources, snapshots, citations and artifacts remain in
@@ -118,8 +128,8 @@ The command above builds from source. See [installation and upgrades](docs/DEPLO
 
 Python 3.12, [uv](https://docs.astral.sh/uv/) and Node.js 24 are the supported development
 toolchain. Setup, meaningful tests and contribution sign-offs are documented in
-[CONTRIBUTING](CONTRIBUTING.md). Usage, deployment, privacy and licensing guides are available in the
-[documentation index](docs/README.md).
+[CONTRIBUTING](CONTRIBUTING.md). Usage, deployment, privacy and licensing guides are
+available in the [documentation index](docs/README.md).
 
 Bug reports and provider compatibility reports are welcome via
 [Issues](https://github.com/daozen/opennotelm/issues). Use synthetic examples and

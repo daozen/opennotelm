@@ -2,6 +2,7 @@ import { test, expect, type APIRequestContext } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 async function prepare(request: APIRequestContext, title: string, filename: string) {
+  await request.put('/api/settings/preferences', { data: { ui_language: 'zh-CN' } });
   for (const role of ['language', 'embedding', 'image']) {
     expect(
       (

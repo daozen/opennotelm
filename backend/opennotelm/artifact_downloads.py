@@ -27,7 +27,7 @@ BUNDLE_TTL = 30 * 60
 
 class ArtifactRef(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    kind: Literal["deck"]
+    kind: Literal["deck", "podcast", "mindmap"]
     id: str = Field(pattern=r"^[a-f0-9]{32}$")
 
 
@@ -79,6 +79,22 @@ class DeckDownloadAdapter:
         if not path.is_relative_to(self.settings.data_dir.resolve()) or not path.is_file():
             raise AppError("PDF_NOT_FOUND", "The PDF file is missing. Export it again.", 404)
         return SavedArtifact(path, download_filename(deck["title"]), row["file_sha256"])
+
+
+class PodcastDownloadAdapter:
+    def __init__(self, podcasts):
+        self.podcasts = podcasts
+
+    def resolve(self, notebook_id, identity):
+        episode = self.podcasts.get(identity)
+        if episode["notebook_id"] != notebook_id:
+            raise AppError("ARTIFACT_NOT_FOUND", "A selected artifact is unavailable.", 404)
+        if not episode["download_available"]:
+            raise AppError("ARTIFACT_NOT_READY", "Generate current audio before downloading.", 409)
+        saved = self.podcasts.record(identity)["audio"]
+        return SavedArtifact(
+            self.podcasts.file(identity), self.podcasts.download_name(identity), saved["sha256"]
+        )
 
 
 def write_bundle(files, output):

@@ -50,7 +50,8 @@ test('merged Deck creation preserves exact length, semantic slides, citations an
     dialog.getByRole('group', { name: '页数', exact: true }).getByRole('radio'),
   ).toHaveCount(3);
   await expect(dialog.getByRole('radio', { name: '合并生成一份 Deck', exact: true })).toBeChecked();
-  await expect(dialog.getByRole('combobox')).toHaveCount(2);
+  await expect(dialog.getByLabel('Deck 语言')).toBeVisible();
+  await expect(dialog.getByLabel('Deck 内容范围')).toBeVisible();
   await dialog.getByRole('radio', { name: '10 页', exact: true }).check();
   await dialog.getByLabel('Deck 补充说明').fill('请帮助初学者理解学习与时间的关系。');
   await dialog.getByRole('button', { name: '开始生成', exact: true }).click();
@@ -144,7 +145,7 @@ test('a failed image can retry and continue without it while preserving complete
   ).json();
   await page.goto('/');
   await page.getByRole('button', { name: `打开 ${title}`, exact: true }).click();
-  await page.locator('.deck-library .deck-open').click();
+  await page.locator('.artifact-grid .deck-open').click();
   const deck = page.getByRole('region', { name: 'Visual Deck', exact: true });
   await expect(deck.getByRole('button', { name: '重试未完成页面' })).toBeEnabled({
     timeout: 60000,

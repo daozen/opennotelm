@@ -11,6 +11,7 @@ from .generation_attempts import RESPONSE_METADATA
 from .image_adapter import OpenAIImagesAdapter
 from .request_limits import ProviderBudgets
 from .schemas import ModelInput
+from .speech_adapter import SPEECH_POLICY, SpeechAdapter
 
 
 class ModelGateway:
@@ -20,6 +21,7 @@ class ModelGateway:
         self.client = client
         self.budgets = ProviderBudgets(request_limit or (lambda: 8))
         self.images = OpenAIImagesAdapter(client, budgets=self.budgets)
+        self.speech = SpeechAdapter(client, self.budgets)
 
     async def request(self, config: ModelInput, key: str, path: str, payload=None):
         async with self.budgets.slot(config):
@@ -188,6 +190,25 @@ class ModelGateway:
         return True
 
     async def test(self, role: str, config: ModelInput, key: str) -> dict:
+        if role == "speech":
+            from .audio import validate_sample
+
+            for speaker in ("A", "B"):
+                audio = await self.speech.generate(
+                    config,
+                    key,
+                    [{"speaker": speaker, "text": "Hello. This is a short voice test."}],
+                    language="en",
+                    policy=SPEECH_POLICY,
+                )
+                await validate_sample(audio)
+            return {
+                "connection": True,
+                "speech_generation": True,
+                "speech_protocol": config.speech_protocol,
+                "voice_a": config.voice_a,
+                "voice_b": config.voice_b,
+            }
         if role == "language":
             await self.text(config, key, [{"role": "user", "content": "Reply with OK."}])
             mode = await self.structured_probe(config, key)

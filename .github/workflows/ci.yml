@@ -52,7 +52,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: uv sync --locked
       - run: uv run playwright install --with-deps chromium
-      - run: sudo apt-get update && sudo apt-get install -y poppler-utils fonts-noto-cjk fonts-noto-core
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils fonts-noto-cjk fonts-noto-core ffmpeg
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest -q
@@ -75,6 +75,7 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: uv sync --locked
       - run: uv run playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: npm ci && npm run build && npm test && npm run format:check && npx prettier --check ../tools/*.mjs && npm audit
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
