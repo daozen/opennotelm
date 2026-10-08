@@ -74,5 +74,5 @@ docker compose up -d --no-build
 ## 音频运行依赖
 
 从源码安装时，Podcast 音频生成和语音模型测试需要应用服务器安装 FFmpeg，并确保启动
-服务时能从 PATH 找到 `ffmpeg`；请通过系统包管理器安装。Dockerfile 已自动安装。
+服务时能从 PATH 找到 `ffmpeg`；请通过系统包管理器安装。Dockerfile 已自动构建精简版 FFmpeg。
 Qwen3-TTS 是可选的独立服务，见[部署说明](QWEN_TTS.md)。

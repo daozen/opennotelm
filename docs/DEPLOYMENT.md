@@ -107,5 +107,5 @@ work around a failed startup. See [security review](SECURITY_SUPPORT.md).
 
 Source installations need FFmpeg on the application server for Podcast audio generation
 and model speech tests. Install it with your system package manager and ensure `ffmpeg`
-is on PATH before starting the server. The Dockerfile installs it automatically.
+is on PATH before starting the server. The Dockerfile builds a reduced FFmpeg automatically.
 Qwen3-TTS is an optional separate service; see [setup](QWEN_TTS.md).

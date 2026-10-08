@@ -9,6 +9,8 @@ authoritative on GitHub Releases; development changes below are not a new releas
 
 ## Unreleased
 
+- Build a reduced, source-pinned container audio runtime with matching source/notices, SBOM metadata and strict format/linkage checks.
+
 - Add source-linked solo/dialogue Podcasts with approximate 5/10/20/30/60-minute
   targets, editable scripts, checkpointed speech, playback and MP3/ZIP downloads.
 - Add optional OpenAI-compatible Speech/Gemini configuration and local Qwen3-TTS setup.

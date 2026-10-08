@@ -37,3 +37,7 @@ LGPL/GPL 等条款，不继承本项目 MIT。新镜像公开发布前必须重�
 可选 Qwen3-TTS 在独立本地环境安装，不随应用镜像或发布附件分发运行环境、模型权重。
 所选官方代码和模型声明 Apache-2.0，其他依赖各有许可；自行再分发时需另行核对。
 配置和固定模型版本见 [Qwen3-TTS](QWEN_TTS.md)。
+
+容器的音频工具由固定哈希的 FFmpeg 原始源码精简编译，采用 LGPL 组件并使用 Debian
+LAME 库；原始声明保存在 `/app/licenses/native-audio/` 和 `/usr/share/doc/`，发布附件
+包含准确 FFmpeg 原始源码。原生安装的 FFmpeg 仍遵循其构建所启用组件的许可。

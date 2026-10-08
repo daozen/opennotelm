@@ -102,6 +102,13 @@ def build(root: Path, output: Path, tag: str) -> list[Path]:
             if not entry["url"].startswith("https://download.gnome.org/sources/"):
                 raise ValueError("Unexpected native source host")
             upstreams.append((name, entry["url"], "sha256:" + entry["sha256"]))
+        audio = json.loads((root / "tools/native_audio_source.json").read_text())
+        if audio["url"] != (
+            "https://deb.debian.org/debian/pool/main/f/ffmpeg/"
+            f"ffmpeg_{audio['version']}.orig.tar.xz"
+        ):
+            raise ValueError("Unexpected audio source host/path")
+        upstreams.append(("ffmpeg", audio["url"], "sha256:" + audio["sha256"]))
         debian = json.loads((root / "tools/debian_security_packages.json").read_text())
         for name, entry in debian["packages"].items():
             for source_entry in entry["sources"]:

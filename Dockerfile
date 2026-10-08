@@ -18,6 +18,12 @@ COPY uv.lock ./
 COPY tools/native_xml_sources.json tools/fetch_xml_sources.py tools/build_xml_wheel.sh ./tools/
 RUN bash tools/build_xml_wheel.sh
 
+FROM xml-builder AS audio-builder
+WORKDIR /build
+RUN apt-get update && apt-get install -y --no-install-recommends libmp3lame-dev && rm -rf /var/lib/apt/lists/*
+COPY tools/native_audio_source.json tools/fetch_audio_source.py tools/build_audio_runtime.sh ./tools/
+RUN bash tools/build_audio_runtime.sh
+
 FROM python:3.12-slim-trixie AS runtime
 COPY --from=uv /uv /usr/local/bin/uv
 WORKDIR /app
@@ -27,10 +33,14 @@ COPY README.md LICENSE THIRD_PARTY_NOTICES.md ./
 COPY docs/DEPENDENCIES.json docs/THIRD_PARTY_NOTICES.zh-CN.md ./docs/
 RUN uv sync --locked --no-dev --no-install-project && .venv/bin/playwright install --with-deps chromium \
     && apt-get update && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-core ffmpeg \
+    && apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-core libmp3lame0 \
     && apt-get purge -y xvfb xserver-common && python -m pip uninstall -y pip \
     && rm -rf /var/lib/apt/lists/* && useradd --uid 10001 --create-home app \
     && mkdir -p /app/data && chown -R app:app /app/data
+COPY --from=audio-builder /build/audio/bin/ffmpeg /usr/local/bin/ffmpeg
+COPY --from=audio-builder /build/audio/licenses/ /app/licenses/native-audio/
+COPY tools/check_audio_runtime.py ./tools/
+RUN .venv/bin/python tools/check_audio_runtime.py
 COPY backend/ ./backend/
 RUN uv sync --locked --no-dev
 COPY tools/debian_security_packages.json tools/install_debian_security.py ./tools/

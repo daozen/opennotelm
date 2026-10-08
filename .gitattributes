@@ -65,3 +65,6 @@ docs/research/deck-visual-expression.md export-ignore
 docs/research/podcast-artifact.md export-ignore
 
 docs/PUBLICATION_PRIVACY.md export-ignore
+
+docs/decisions/041-mindmaps-and-artifact-studio.md export-ignore
+docs/decisions/042-reduced-container-audio-runtime.md export-ignore

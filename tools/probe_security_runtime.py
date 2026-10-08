@@ -22,6 +22,9 @@ def static_guards(root: Path, policy: dict) -> dict:
     for name, expected in policy["runtime_sources"].items():
         if hashlib.sha256((root / name).read_bytes()).hexdigest() != expected:
             raise ValueError("Runtime source changed; applicability review required")
+    for name, expected in policy["guard_sources"].items():
+        if hashlib.sha256((root / name).read_bytes()).hexdigest() != expected:
+            raise ValueError("Runtime guard changed; applicability review required")
     versions = {}
     for advisory in policy["advisories"].values():
         for package, version in advisory["packages"].items():
@@ -126,9 +129,12 @@ async def browser_guard() -> bool:
 
 
 async def main() -> None:
+    from check_audio_runtime import probe as audio_probe
+
     policy = json.loads(Path("/app/tools/container_runtime_review.json").read_text())
     report = static_guards(Path("/app"), policy)
     report["guards"]["headless_cpu"] = await browser_guard()
+    report["guards"]["restricted_audio"] = audio_probe()["restricted_audio"]
     if not all(report["guards"].values()):
         raise ValueError("Supported runtime security conditions are not satisfied")
     # Public component metadata only; no commands, maps, source text or environment values.

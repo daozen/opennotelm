@@ -32,13 +32,16 @@ docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges:t
 docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges:true \
   --entrypoint /app/.venv/bin/python "$image" \
   /app/tools/probe_security_runtime.py > "$output/applicability.json"
+docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges:true \
+  --entrypoint /app/.venv/bin/python "$image" \
+  /app/tools/check_audio_runtime.py --json > "$output/native-audio.json"
 # Keep all severity findings; do not suppress unfixed findings or scan secrets.
 "$tool_dir/trivy" image --cache-dir "$output/cache" --timeout 15m --scanners vuln \
   --format json --output "$output/vulnerabilities.json" "$image"
 "$tool_dir/trivy" image --cache-dir "$output/cache" --timeout 15m --scanners vuln \
   --skip-db-update --format cyclonedx --output "$output/sbom.raw.cdx.json" "$image"
 python3 tools/native_xml_sbom.py --sbom "$output/sbom.raw.cdx.json" \
-  --native "$output/native-xml.json" --output "$output/sbom.cdx.json"
+  --native "$output/native-xml.json" --audio "$output/native-audio.json" --output "$output/sbom.cdx.json"
 python3 tools/review_container_findings.py --scan "$output/vulnerabilities.json" \
   --runtime "$output/debian-security.json" --output "$output/review.json" \
   --applicability "$output/applicability.json" --policy tools/container_runtime_review.json
