@@ -35,7 +35,7 @@ export type Notebook = {
   knowledge_count?: number;
   deck_count?: number;
 };
-export type ModelRole = 'language' | 'embedding' | 'image';
+export type ModelRole = 'language' | 'embedding' | 'image' | 'speech';
 export type ModelConfig = {
   base_url: string;
   model_id: string;
@@ -192,6 +192,7 @@ export type DeckScope = Omit<Scope, 'kind'> & {
   knowledge_page_id?: string;
 };
 export type DeckSummary = {
+  created_at?: string;
   download_available?: boolean;
   batch_label?: string;
   job_status?: Job['status'];
@@ -237,6 +238,7 @@ export type Slide = {
   citations: Record<string, string>;
 };
 export type Deck = DeckSummary & {
+  instruction?: string;
   title_mode?: 'auto' | 'source' | 'custom';
   render_mode?: 'generated_page' | 'native';
   art_direction?: {
@@ -291,4 +293,69 @@ export type DeckSources = {
       available: boolean;
     }[];
   }[];
+};
+
+export type PodcastTurn = {
+  speaker: 'A' | 'B';
+  text: string;
+  basis: 'source' | 'interpretation' | 'background' | 'analogy' | 'conversation';
+  evidence_ids: string[];
+};
+export type PodcastSegment = {
+  id: string;
+  title: string;
+  ordinal: number;
+  revision: number;
+  plan: { focus: string; evidence_ids: string[] };
+  script: { turns: PodcastTurn[] } | null;
+  citations: Record<string, string>;
+};
+export type PodcastSummary = {
+  created_at?: string;
+  id: string;
+  title: string;
+  status: string;
+  input: {
+    instruction?: string;
+    language: string;
+    target_minutes: number;
+    format: 'dialogue' | 'solo';
+    script_only: boolean;
+  };
+  audio: {
+    revision: number;
+    signature: string;
+    duration_seconds: number;
+    timeline: { segment_id: string; start: number }[];
+  } | null;
+  download_available: boolean;
+  job: Job | null;
+};
+export type Podcast = PodcastSummary & {
+  notebook_id: string;
+  revision: number;
+  segments: PodcastSegment[];
+  saved_audio_chunks: number;
+};
+
+export type MindMapNode = {
+  id: string;
+  parent_id: string | null;
+  label: string;
+  detail: string;
+  basis: 'structural' | 'source' | 'interpretation' | 'background' | 'analogy';
+  evidence_ids: string[];
+};
+export type MindMap = {
+  id: string;
+  notebook_id: string;
+  title: string;
+  status: string;
+  input: { language: string; instruction?: string };
+  tree: { title: string; nodes: MindMapNode[] } | null;
+  citations: Record<string, string>;
+  job?: Job | null;
+  download_available: boolean;
+  created_at: string;
+  node_count?: number;
 };

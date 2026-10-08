@@ -18,11 +18,21 @@ JOB_TYPES = {
     "knowledge_generate",
     "knowledge_update",
     "transform_source",
+    "podcast_generate",
+    "mindmap_generate",
     "deck_generate",
     "deck_export",
     "slide_revision",
 }
 STAGES = JOB_TYPES | {
+    "podcast_reading",
+    "mindmap_reading",
+    "mindmap_mapping",
+    "mindmap_exporting",
+    "podcast_planning",
+    "podcast_writing",
+    "podcast_speech",
+    "podcast_assembling",
     "queued",
     "resuming",
     "completed",
@@ -68,7 +78,7 @@ def timestamp(value):
 def diagnostic_report(app):
     db = app.state.db
     models, configurations = [], []
-    for role in ("language", "embedding", "image"):
+    for role in ("language", "embedding", "image", "speech"):
         try:
             config, key = app.state.models.configured(role)
         except Exception:

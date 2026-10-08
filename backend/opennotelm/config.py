@@ -34,6 +34,9 @@ class Settings:
     content_generation_concurrency: int = field(
         default_factory=lambda: int(os.getenv("CONTENT_GENERATION_CONCURRENCY", "2"))
     )
+    speech_generation_concurrency: int = field(
+        default_factory=lambda: int(os.getenv("SPEECH_GENERATION_CONCURRENCY", "2"))
+    )
     telemetry_host: str = field(
         default_factory=lambda: os.getenv("TELEMETRY_HOST", "https://us.i.posthog.com")
     )
@@ -97,6 +100,8 @@ class Settings:
     )
 
     def __post_init__(self) -> None:
+        if not 1 <= self.speech_generation_concurrency <= 20:
+            raise ValueError("SPEECH_GENERATION_CONCURRENCY must be between 1 and 20")
         if not 1 <= self.task_concurrency <= 8 or not 1 <= self.model_request_concurrency <= 20:
             raise ValueError("Task concurrency must be 1–8 and model concurrency 1–20")
         if (
@@ -124,6 +129,16 @@ class Settings:
             raise ValueError("CONTENT_GENERATION_CONCURRENCY must be between 1 and 20")
 
     def prepare(self) -> None:
-        for directory in ("sources", "assets", "renders", "exports", "vector", "cache", "secrets"):
+        for directory in (
+            "sources",
+            "assets",
+            "renders",
+            "exports",
+            "podcasts",
+            "mindmaps",
+            "vector",
+            "cache",
+            "secrets",
+        ):
             (self.data_dir / directory).mkdir(parents=True, exist_ok=True)
         (self.data_dir / "secrets").chmod(0o700)

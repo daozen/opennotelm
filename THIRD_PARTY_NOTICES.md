@@ -38,6 +38,21 @@ dependencies, modifying copyleft files, redistributing model weights or bundling
 No model weights, user books, generated user Decks or provider credentials are distributed.
 Public test/demo materials are synthetic; their rights are documented with the fixtures.
 
+## Optional Podcast runtime (development branch)
+
+Podcast processing uses an external FFmpeg executable. Native installations use the
+user's installed build; the development Docker image installs Debian's FFmpeg package
+and retains its original notices under `/usr/share/doc/`. FFmpeg and its codecs keep
+their own LGPL/GPL terms; the project's MIT license does not relicense them. A new
+public image release requires a refreshed package/SBOM/license review and matching
+source distribution where required. Previous image approval does not cover this change.
+
+The optional Qwen3-TTS installer creates a separate local environment. Neither that
+runtime nor model weights are included in the application image or release archives.
+Qwen3-TTS code and the selected official model declare Apache-2.0; installed dependencies
+retain separate terms. Review them before redistributing the environment or weights.
+See [local setup and pinned model](docs/QWEN_TTS.md).
+
 ## Lucide pictograms
 
 OpenNoteLM bundles selected Lucide v0.468.0 geometry for native Deck diagrams.

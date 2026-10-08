@@ -165,7 +165,8 @@ class DeckService:
             decks = [
                 dict(row)
                 for row in conn.execute(
-                    "SELECT id,title,status,target_slide_count,updated_at,CASE WHEN plan_json "
+                    "SELECT id,title,status,target_slide_count,created_at,updated"
+                    "_at,CASE WHEN plan_json "
                     "IS NOT NULL "
                     "THEN (SELECT count(*) FROM slides WHERE deck_id=decks.id) ELSE "
                     "target_slide_count END "

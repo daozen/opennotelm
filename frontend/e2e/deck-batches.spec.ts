@@ -103,7 +103,7 @@ test('separate source and hierarchical chapter Decks retain independent exports 
       sources.decks.map((d: { id: string }) => d.id),
     );
     await waitDecks(sources);
-    await expect(page.locator('.deck-library .deck-open')).toHaveCount(2);
+    await expect(page.locator('.artifact-grid .deck-open')).toHaveCount(2);
     for (const created of sources.decks) {
       const deck = await read(created.id);
       expect(deck.title).toBe(
@@ -113,7 +113,7 @@ test('separate source and hierarchical chapter Decks retain independent exports 
       expect((await request.get(deck.pdf_export.download_url)).ok()).toBeTruthy();
     }
     await page.reload();
-    await expect(page.locator('.deck-library .deck-open')).toHaveCount(2);
+    await expect(page.locator('.artifact-grid .deck-open')).toHaveCount(2);
     await page.getByRole('button', { name: '生成 Visual Deck', exact: true }).click();
     dialog = page.getByRole('dialog', { name: '生成 Visual Deck' });
     await dialog.getByLabel('Deck 内容范围').selectOption(`source:${upload.source.id}`);
@@ -172,9 +172,9 @@ test('separate source and hierarchical chapter Decks retain independent exports 
     expect(contents[1]).toContain('BETA_ONLY');
     expect(contents.join(' ')).not.toContain('PARENT_INTRO');
     expect(contents.join(' ')).not.toContain('GAMMA_EXCLUDED');
-    await expect(page.locator('.deck-library .deck-open')).toHaveCount(4);
+    await expect(page.locator('.artifact-grid .deck-open')).toHaveCount(4);
     await page.reload();
-    await expect(page.locator('.deck-library .deck-open')).toHaveCount(4);
+    await expect(page.locator('.artifact-grid .deck-open')).toHaveCount(4);
     await expect(page.getByRole('link', { name: '下载 PDF · 10 页', exact: true })).toBeVisible();
     const current = await read(chapters.decks[0].id);
     const manifest = await (await request.get(`/api/decks/${current.id}/sources`)).json();
@@ -248,7 +248,7 @@ test('separate source and hierarchical chapter Decks retain independent exports 
     }
     await expect(studio.getByRole('link', { name: '下载 ZIP', exact: true })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole('button', { name: '演示文稿', exact: true }).click();
+    await page.getByRole('button', { name: '创作空间', exact: true }).click();
     expect(await studio.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBeTruthy();
     await page.screenshot({
       path: 'test-results/artifact-batch-download-mobile.png',

@@ -52,3 +52,24 @@ test('only the top nested dialog handles Escape and in-flight operations cannot 
   fireEvent.keyDown(document, { key: 'Escape' });
   expect(parent).toHaveBeenCalledOnce();
 });
+
+test('alert dialogs support focus containment and restore scroll state on close', () => {
+  const close = vi.fn();
+  const { unmount } = render(
+    <Modal onClose={close}>
+      <section role="alertdialog" aria-modal="true" aria-label="Delete episode">
+        <button>Cancel</button>
+        <button>Delete</button>
+      </section>
+    </Modal>,
+  );
+  expect(screen.getByRole('alertdialog')).toBeVisible();
+  expect(screen.getByText('Cancel')).toHaveFocus();
+  screen.getByText('Delete').focus();
+  fireEvent.keyDown(document, { key: 'Tab' });
+  expect(screen.getByText('Cancel')).toHaveFocus();
+  fireEvent.keyDown(document, { key: 'Escape' });
+  expect(close).toHaveBeenCalledOnce();
+  unmount();
+  expect(document.body.style.overflow).toBe('');
+});

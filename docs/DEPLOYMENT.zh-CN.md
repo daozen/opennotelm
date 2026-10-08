@@ -70,3 +70,9 @@ docker compose up -d --no-build
 恢复的中断任务可能继续并调用模型，演练时应隔离模型访问，除非这些请求符合预期。
 
 候选运行镜像使用 Debian 13/Trixie 上的 Python 3.12。镜像安全状态单独记录在[准备状态](RELEASE_STATUS.md)，功能测试通过不代表漏洞记录已解决。
+
+## 音频运行依赖
+
+从源码安装时，Podcast 音频生成和语音模型测试需要应用服务器安装 FFmpeg，并确保启动
+服务时能从 PATH 找到 `ffmpeg`；请通过系统包管理器安装。Dockerfile 已自动安装。
+Qwen3-TTS 是可选的独立服务，见[部署说明](QWEN_TTS.md)。

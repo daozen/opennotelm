@@ -46,7 +46,7 @@ test('edit, regenerate independent layers, AI revise, reorder and delete only af
   const read = async (): Promise<Deck> => (await request.get(`/api/decks/${created.id}`)).json();
   await page.goto('/');
   await page.getByRole('button', { name: `打开 ${title}`, exact: true }).click();
-  await page.locator('.deck-library .deck-open').click();
+  await page.locator('.artifact-grid .deck-open').click();
   const viewer = page.getByRole('region', { name: 'Visual Deck', exact: true });
   await expect(viewer.getByRole('link', { name: '下载 PDF · 10 页' })).toBeVisible({
     timeout: 60000,

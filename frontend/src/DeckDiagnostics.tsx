@@ -32,6 +32,11 @@ type Report = {
   omitted_attempts: number;
 };
 const stages: Record<string, string> = {
+  MindMapTree: '梳理概念关系',
+  mindmap: '理解资料',
+  mindmap_reading: '理解资料',
+  mindmap_mapping: '梳理概念关系',
+  mindmap_exporting: '准备导出',
   DeckPreferences: '理解生成要求',
   DeckBrief: '确定内容目标',
   DeckPlan: '规划叙事',
@@ -91,8 +96,10 @@ const reasons: Record<string, string> = {
 export default function DeckDiagnostics({
   deckId,
   failed = true,
+  kind = 'deck',
 }: {
   deckId: string;
+  kind?: 'deck' | 'mindmap';
   failed?: boolean;
 }) {
   const uiLanguage = useI18n();
@@ -104,7 +111,9 @@ export default function DeckDiagnostics({
     setLoading(true);
     setError('');
     try {
-      setReport(await api<Report>(`/decks/${deckId}/diagnostics`));
+      setReport(
+        await api<Report>(`/${kind === 'deck' ? 'decks' : 'mindmaps'}/${deckId}/diagnostics`),
+      );
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -127,7 +136,9 @@ export default function DeckDiagnostics({
         <div className="diagnostic-report" role="region" aria-label={t('失败详情')}>
           <p className="help">
             {t(
-              '包含本 Deck 的历史尝试；校验失败后修复成功的记录也会保留。报告不含原文、提示词或密钥。',
+              kind === 'deck'
+                ? '包含本 Deck 的历史尝试；校验失败后修复成功的记录也会保留。报告不含原文、提示词或密钥。'
+                : '包含本导图的生成记录，不含原文、自定义说明或密钥。',
             )}
           </p>
           <div className="button-row">
@@ -136,10 +147,10 @@ export default function DeckDiagnostics({
             </button>
             <a
               className="button secondary"
-              href={`/api/decks/${deckId}/diagnostics?download=true`}
-              download="deck-diagnostics.json"
+              href={`/api/${kind === 'deck' ? 'decks' : 'mindmaps'}/${deckId}/diagnostics?download=true`}
+              download={`${kind}-diagnostics.json`}
             >
-              {t('下载本 Deck 诊断报告')}
+              {t(kind === 'deck' ? '下载本 Deck 诊断报告' : '下载导图诊断报告')}
             </a>
           </div>
           {loading && <p role="status">{t('正在读取诊断记录…')}</p>}
@@ -156,7 +167,7 @@ export default function DeckDiagnostics({
                     {t('手动重试 {{count}} 次', { count: j.retry_count })}
                   </p>
                 ))}
-              {report.slides
+              {(report.slides ?? [])
                 .filter((s) => s.error_code)
                 .map((s) => (
                   <p key={s.id}>
@@ -169,7 +180,7 @@ export default function DeckDiagnostics({
               )}
               <ol className="diagnostic-attempts">
                 {report.attempts.slice(0, 50).map((a) => {
-                  const slide = report.slides.find((s) => s.id === a.subject_id);
+                  const slide = (report.slides ?? []).find((s) => s.id === a.subject_id);
                   return (
                     <li key={a.id}>
                       <strong>

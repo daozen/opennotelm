@@ -64,7 +64,16 @@ saved results. In Model settings adjust task count (1–8), shared provider requ
 (1–20), and content/OCR/image concurrency (each 1–20). New work uses new settings;
 running work keeps frozen settings.
 
+The instructions field includes **Previous instructions**: choose from the 20 most
+recent distinct requests saved in existing artifacts of the same type, across notebooks.
+Selecting one replaces the draft below; you can edit it before generating. Unsent drafts
+are not saved as history. Deleting the last artifact using a request removes it from the list.
+Deck, Podcast and mind-map histories are separate; a history-loading failure still allows manual entry.
+
 ## Review, revise and download
+
+Open **Generation instructions** on a Deck, Podcast or mind map to read its original request.
+This is read-only and does not regenerate the artifact; an empty request is indicated explicitly.
 
 Click the image's left/right half or use ↑/↓ to change pages. Inputs/edit dialogs
 keep their own keyboard behavior. Focus view enlarges the preview; Escape exits.
@@ -101,3 +110,49 @@ before sharing. Use self-written minimal samples, not private books, database du
 or raw model responses. Statistics default off. With no receiver configured you can
 save your choice, but nothing is sent externally; local queues are bounded. See
 [privacy](PRIVACY.md) and [security](../SECURITY.md).
+
+
+## Create a Podcast
+
+In Studio choose **Create Podcast**, select sources, a knowledge page or chapters,
+then choose a combined episode or separate episodes. Pick conversation or solo
+narration, a language and an approximate 5/10/20/30/60-minute target. Instructions
+apply from the first reading step. Real duration depends on content and speaking pace.
+
+Configure the optional Speech role for audio: an OpenAI-compatible Speech base URL,
+model and two supported voices, or native Gemini Interactions. Both voices are tested
+when saved. You can write the script first without a speech service, edit it and
+then generate audio. [Local Qwen3-TTS setup](QWEN_TTS.md) is optional and separate.
+
+Stop and resume preserve saved sections/audio. Editing scripts reuses unchanged
+speech; an older audio version stays explicitly marked until a replacement completes.
+Open citations or episode sources to inspect the original passages. Play with the
+persistent player, change speed or jump between chapter timestamps. Download MP3,
+the structured script or multiple ready episodes in a ZIP. Failure details contain
+operational metadata, not your script or original sources. Delete removes episode
+files while keeping sources. Changed model/voice settings cannot silently alter a
+resumed episode; restore its settings or create another episode.
+
+
+## Studio and mind maps
+
+Open **All artifacts** to create or find Visual Decks, Podcasts and mind maps in one
+place. Search by name or filter by type/status; use **Switch artifact** while viewing.
+**Back to Studio** returns to the library. You can stop, resume or delete individual
+items and download ready files together. Deleting an artifact keeps original sources.
+
+Choose **Create mind map**, select sources, a knowledge page or chapters, and generate
+one combined map or separate maps. Choose the language and optional instructions;
+previous instructions can be reused. Chapter maps automatically use the parent book
+for context. Mind maps use the language model; no image or speech generation is needed.
+
+Click a node to read its explanation and source passages. Expand/collapse branches,
+drag to pan, zoom or fit the canvas. With the pointer over the canvas, use the mouse
+wheel or pinch with two fingers on a Mac trackpad to zoom around the pointer. The
+plus/minus buttons also work; scrolling outside the canvas still scrolls the page.
+**Focus preview** provides more room; **Text
+outline** shows the complete hierarchy on smaller screens. The map and selected node
+have their own URL and survive refresh. Download SVG for the full diagram, Markdown
+for the outline, or JSON for structured content and source references. Batch downloads
+include mind maps as Markdown files. Saved instructions, sources and failure details
+are available in the map view. Stop/resume keeps saved progress.

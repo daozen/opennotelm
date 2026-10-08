@@ -217,10 +217,13 @@ class JobService:
                     reservations.append((candidate, access))
             # Alternate task families when possible, preserving resource FIFO.
             # A large Deck batch must not monopolize every newly available slot.
-            groups = ("source", "deck", "interactive")
+            groups = ("source", "deck", "podcast", "mindmap", "interactive")
             if candidates and self.last_group is not None:
                 offset = groups.index(self.last_group) + 1
-                row = min(candidates, key=lambda job: (groups.index(self.group(job)) - offset) % 3)
+                row = min(
+                    candidates,
+                    key=lambda job: (groups.index(self.group(job)) - offset) % len(groups),
+                )
             else:
                 row = candidates[0] if candidates else None
             if row:
@@ -236,6 +239,10 @@ class JobService:
             return "source"
         if job["type"] in ("deck_generate", "deck_export", "slide_revision"):
             return "deck"
+        if job["type"] == "podcast_generate":
+            return "podcast"
+        if job["type"] == "mindmap_generate":
+            return "mindmap"
         return "interactive"
 
     @staticmethod
@@ -260,6 +267,21 @@ class JobService:
                             "SELECT source_id FROM citation_spans WHERE citation_id=?", (identity,)
                         )
                     )
+        if job["type"] in ("podcast_generate", "mindmap_generate"):
+            table = "podcasts" if job["type"] == "podcast_generate" else "mindmaps"
+            episode = conn.execute(
+                f"SELECT source_scope_json,knowledge_snapshot_json FROM {table} WHERE id=?",
+                (job["entity_id"],),
+            ).fetchone()
+            scope = json.loads(episode[0]) if episode else None
+            snapshot = json.loads(episode[1] or "null") if episode else None
+            for citation in (snapshot or {}).get("citations", {}).values():
+                snapshot_sources.update(
+                    r[0]
+                    for r in conn.execute(
+                        "SELECT source_id FROM citation_spans WHERE citation_id=?", (citation,)
+                    )
+                )
         if scope:
             sources = snapshot_sources | set(scope.get("source_ids") or [])
             if scope.get("source_id"):

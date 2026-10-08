@@ -11,8 +11,9 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from . import __version__
-from .artifact_downloads import ArtifactDownloadService, DeckDownloadAdapter
+from .artifact_downloads import ArtifactDownloadService, DeckDownloadAdapter, PodcastDownloadAdapter
 from .artifact_downloads import router as artifact_download_router
+from .artifact_instructions import router as artifact_instruction_router
 from .assets import AssetService
 from .chat import ChatService
 from .chat_routes import router as chat_router
@@ -32,9 +33,14 @@ from .jobs import JobService
 from .knowledge import KnowledgeService
 from .knowledge_routes import router as knowledge_router
 from .maintenance import FileMaintenance
+from .mindmap_routes import MindMapDownloadAdapter
+from .mindmap_routes import router as mindmap_router
+from .mindmaps import MindMapService
 from .model_service import ModelService
 from .notebooks import NotebookService
 from .pdf_export import PDFExportService
+from .podcast_routes import router as podcast_router
+from .podcasts import PodcastService
 from .render_routes import router as render_router
 from .retrieval import RetrievalService
 from .revisions import RevisionService
@@ -47,6 +53,7 @@ from .schemas import (
     ModelTestInput,
     NotebookInput,
     PreferencesInput,
+    SpeechGenerationSettingsInput,
     TaskConcurrencyInput,
 )
 from .secrets import SecretStore
@@ -117,6 +124,24 @@ def create_app(settings: Settings | None = None, transport=None) -> FastAPI:
                     app.state.citations,
                     settings,
                 )
+                app.state.podcasts = PodcastService(
+                    db,
+                    app.state.jobs,
+                    app.state.models,
+                    app.state.knowledge,
+                    app.state.citations,
+                    settings,
+                    app.state.decks.work_context,
+                )
+                app.state.mindmaps = MindMapService(
+                    db,
+                    app.state.jobs,
+                    app.state.models,
+                    app.state.knowledge,
+                    app.state.citations,
+                    settings,
+                    app.state.decks.work_context,
+                )
                 app.state.composition = CompositionService(db, app.state.models, settings)
                 app.state.assets = AssetService(
                     db, app.state.models, settings, app.state.composition.designs
@@ -128,7 +153,11 @@ def create_app(settings: Settings | None = None, transport=None) -> FastAPI:
                 app.state.artifact_downloads = ArtifactDownloadService(
                     app.state.notebooks,
                     app.state.jobs,
-                    {"deck": DeckDownloadAdapter(db, app.state.pdf_exports, settings)},
+                    {
+                        "deck": DeckDownloadAdapter(db, app.state.pdf_exports, settings),
+                        "podcast": PodcastDownloadAdapter(app.state.podcasts),
+                        "mindmap": MindMapDownloadAdapter(app.state.mindmaps),
+                    },
                 )
                 app.state.revisions = RevisionService(db, app.state.jobs, app.state.decks)
                 app.state.decks.revisions = app.state.revisions
@@ -161,7 +190,10 @@ def create_app(settings: Settings | None = None, transport=None) -> FastAPI:
     app.include_router(knowledge_router)
     app.include_router(transformation_router)
     app.include_router(deck_router)
+    app.include_router(podcast_router)
+    app.include_router(mindmap_router)
     app.include_router(artifact_download_router)
+    app.include_router(artifact_instruction_router)
     app.include_router(render_router)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=list(settings.allowed_hosts))
 
@@ -296,6 +328,14 @@ def create_app(settings: Settings | None = None, transport=None) -> FastAPI:
     @app.put("/api/settings/models/image-generation")
     def save_image_generation_settings(data: ImageGenerationSettingsInput, request: Request):
         return request.app.state.decks.image_generation_settings.save(data)
+
+    @app.get("/api/settings/models/speech-generation")
+    def speech_settings(request: Request):
+        return request.app.state.podcasts.speech_settings.get()
+
+    @app.put("/api/settings/models/speech-generation")
+    def save_speech_settings(data: SpeechGenerationSettingsInput, request: Request):
+        return request.app.state.podcasts.speech_settings.save(data)
 
     @app.get("/api/settings/models/content-generation")
     def content_generation_settings(request: Request):

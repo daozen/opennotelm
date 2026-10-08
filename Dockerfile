@@ -27,7 +27,7 @@ COPY README.md LICENSE THIRD_PARTY_NOTICES.md ./
 COPY docs/DEPENDENCIES.json docs/THIRD_PARTY_NOTICES.zh-CN.md ./docs/
 RUN uv sync --locked --no-dev --no-install-project && .venv/bin/playwright install --with-deps chromium \
     && apt-get update && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-core \
+    && apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-core ffmpeg \
     && apt-get purge -y xvfb xserver-common && python -m pip uninstall -y pip \
     && rm -rf /var/lib/apt/lists/* && useradd --uid 10001 --create-home app \
     && mkdir -p /app/data && chown -R app:app /app/data

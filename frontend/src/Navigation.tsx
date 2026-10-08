@@ -11,7 +11,18 @@ import type { Scope } from './api';
 import { useGuardedNavigation } from './NavigationGuard';
 
 export type Route = {
-  view: 'home' | 'chat' | 'source' | 'knowledge' | 'deck' | 'missing';
+  view:
+    | 'home'
+    | 'chat'
+    | 'source'
+    | 'knowledge'
+    | 'deck'
+    | 'podcast'
+    | 'mindmap'
+    | 'artifacts'
+    | 'missing';
+  artifactKind?: 'deck' | 'podcast' | 'mindmap';
+  mapNodeId?: string;
   notebookId?: string;
   itemId?: string;
   library?: 'sources' | 'knowledge';
@@ -45,6 +56,11 @@ export function parseRoute(url: URL): Route {
         ? { kind: 'node', source_id: source, node_id: node }
         : { kind: 'source', source_id: source }
     : { kind: 'selected' };
+  const artifactKind = ['deck', 'podcast', 'mindmap'].includes(query.get('type') ?? '')
+    ? (query.get('type') as Route['artifactKind'])
+    : undefined;
+  if (pieces.length === 3 && pieces[2] === 'artifacts')
+    return { view: 'artifacts', notebookId, library: library ?? 'sources', scope, artifactKind };
   if (pieces.length === 2)
     return { view: 'chat', notebookId, library: library ?? 'sources', scope };
   const view =
@@ -54,29 +70,42 @@ export function parseRoute(url: URL): Route {
         ? 'knowledge'
         : pieces[2] === 'decks'
           ? 'deck'
-          : undefined;
+          : pieces[2] === 'podcasts'
+            ? 'podcast'
+            : pieces[2] === 'mindmaps'
+              ? 'mindmap'
+              : undefined;
   if (pieces.length !== 4 || !view || !validId(pieces[3] ?? null))
     return { view: 'missing', notebookId };
   const id = (key: string) => (validId(query.get(key)) ? query.get(key)! : undefined);
   return {
     view,
+    artifactKind,
     notebookId,
     itemId: pieces[3],
     scope,
     library: library ?? (view === 'knowledge' ? 'knowledge' : 'sources'),
     ...(view === 'source' ? { nodeId: id('node'), blockId: id('block') } : {}),
     ...(view === 'deck' ? { slideId: id('slide') } : {}),
+    ...(view === 'mindmap' ? { mapNodeId: id('node') } : {}),
   };
 }
 
 export function routeUrl(route: Route): string {
   if (!route.notebookId || route.view === 'home') return '/';
   let path = `/notebooks/${encodeURIComponent(route.notebookId)}`;
-  const segment = { source: 'sources', knowledge: 'knowledge', deck: 'decks' }[
-    route.view as 'source' | 'knowledge' | 'deck'
-  ];
+  if (route.view === 'artifacts') path += '/artifacts';
+  const segment = {
+    mindmap: 'mindmaps',
+    source: 'sources',
+    knowledge: 'knowledge',
+    deck: 'decks',
+    podcast: 'podcasts',
+  }[route.view as 'source' | 'knowledge' | 'deck' | 'podcast' | 'mindmap'];
   if (segment && route.itemId) path += `/${segment}/${encodeURIComponent(route.itemId)}`;
   const query = new URLSearchParams();
+  if (route.artifactKind) query.set('type', route.artifactKind);
+  if (route.view === 'mindmap' && route.mapNodeId) query.set('node', route.mapNodeId);
   if (route.library && route.library !== (route.view === 'knowledge' ? 'knowledge' : 'sources'))
     query.set('tab', route.library);
   if (route.view === 'source') {

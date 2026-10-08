@@ -5,7 +5,7 @@ import { t, useI18n } from './i18n';
 
 export type DownloadableArtifact = {
   id: string;
-  kind: 'deck';
+  kind: 'deck' | 'podcast' | 'mindmap';
   title: string;
   download_available?: boolean;
 };
@@ -73,9 +73,7 @@ export default function ArtifactBatchDownload<T extends DownloadableArtifact>({
                 />
                 {t('选择全部可下载文件')}
               </label>
-              <p className="help">
-                {t('已有当前版本 PDF 的 Deck 可以下载；生成中或尚未导出的 Deck 暂不可选。')}
-              </p>
+              <p className="help">{t('已有当前版本文件的内容可下载；生成中的内容暂不可选。')}</p>
               <p className="help">{t('每次最多下载 100 份、总大小 512 MB，请按需分批选择。')}</p>
               <div className="artifact-download-actions">
                 <button

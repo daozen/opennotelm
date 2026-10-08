@@ -27,6 +27,8 @@ import DeckDeleteDialog from './DeckDeleteDialog';
 import DeckDiagnostics from './DeckDiagnostics';
 import DeckSources from './DeckSources';
 import DeckRenameDialog from './DeckRenameDialog';
+import ArtifactInstructions from './ArtifactInstructions';
+import ArtifactInstructionDetails from './ArtifactInstructionDetails';
 
 export const deckStatus: Record<string, string> = {
   understanding: '理解资料',
@@ -379,18 +381,12 @@ export function CreateDeck({
         {mode === 'separate' && (
           <p className="help">{t('每份 Deck 独立排队生成，可分别查看和重试；每批最多 100 份。')}</p>
         )}
-        <label>
-          {t('补充说明（可选）')}
-          <textarea
-            aria-label={t('Deck 补充说明')}
-            disabled={busy}
-            value={instruction}
-            maxLength={4000}
-            onChange={(e) => setInstruction(e.target.value)}
-            placeholder={t('例如：重点解释长期积累，让初学者也容易理解。')}
-            rows={3}
-          />
-        </label>
+        <ArtifactInstructions
+          kind="deck"
+          value={instruction}
+          onChange={setInstruction}
+          disabled={busy}
+        />
         {error && (
           <p className="error" role="alert">
             {t(error)}
@@ -451,6 +447,7 @@ const slideTitle = (slide: Slide) =>
 export default function DeckView({
   id,
   onBack,
+  backLabel,
   onOpenSource,
   onOpenKnowledge,
   selectedSlideId,
@@ -461,6 +458,7 @@ export default function DeckView({
 }: {
   id: string;
   onBack: () => void;
+  backLabel?: string;
   onOpenSource: (sourceId: string, blockId: string) => Promise<void>;
   onOpenKnowledge?: (pageId: string) => void;
   selectedSlideId?: string;
@@ -698,7 +696,7 @@ export default function DeckView({
     <section className="deck-view" aria-label="Visual Deck">
       <div className="reader-header">
         <button className="button ghost" onClick={onBack}>
-          <ArrowLeft size={16} /> {t('返回对话')}
+          <ArrowLeft size={16} /> {backLabel ?? t('返回对话')}
         </button>
         <span className="reader-format">Visual Deck</span>
       </div>
@@ -727,6 +725,7 @@ export default function DeckView({
               })}
             </p>
           </div>
+          <ArtifactInstructionDetails instruction={deck.instruction} />
           <DeckSources
             key={`sources:${id}`}
             id={id}

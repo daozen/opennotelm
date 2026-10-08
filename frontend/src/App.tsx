@@ -1,4 +1,5 @@
 import Modal from './Modal';
+import { PodcastPlayerProvider, usePodcastPlayer } from './PodcastPlayer';
 import { t, useI18n } from './i18n';
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, BookOpen, Ellipsis, Plus, Settings2, Trash2, X } from 'lucide-react';
@@ -90,6 +91,7 @@ function NotebookEditor({
 }
 
 function Application() {
+  const player = usePodcastPlayer();
   const uiLanguage = useI18n();
   const { route, go } = useNavigation();
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
@@ -383,6 +385,7 @@ function Application() {
                   setDeleteError('');
                   try {
                     await api(`/notebooks/${deleting.id}`, { method: 'DELETE' });
+                    if (player.notebookId === deleting.id) player.stop();
                     await refresh();
                     setDeleting(null);
                   } catch (e) {
@@ -408,7 +411,9 @@ export default function App() {
     <LanguagePreferencesProvider>
       <NavigationGuardProvider>
         <NavigationProvider>
-          <Application />
+          <PodcastPlayerProvider>
+            <Application />
+          </PodcastPlayerProvider>
         </NavigationProvider>
       </NavigationGuardProvider>
     </LanguagePreferencesProvider>

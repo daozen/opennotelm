@@ -21,7 +21,7 @@ export default function Modal({
   state.current = { onClose, busy };
   useEffect(() => {
     const container = backdrop.current!;
-    const dialog = container.querySelector<HTMLElement>('[role="dialog"]')!;
+    const dialog = container.querySelector<HTMLElement>('[role="dialog"], [role="alertdialog"]')!;
     if (!openModals.length) originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     dialog.tabIndex = -1;

@@ -30,7 +30,10 @@ class ModelService:
                     "has_api_key": True,
                     "capabilities": json.loads(row["capabilities_json"]),
                 }
-            return {"setup_complete": len(configs) == 3, "models": configs}
+            return {
+                "setup_complete": {"language", "embedding", "image"} <= configs.keys(),
+                "models": configs,
+            }
 
     def configured(self, role: str) -> tuple[ModelInput, str]:
         config, key, _ = self.configured_with_capabilities(role)
@@ -41,14 +44,20 @@ class ModelService:
             row = conn.execute("SELECT * FROM model_configs WHERE role=?", (role,)).fetchone()
         if not row:
             raise AppError("MODEL_NOT_CONFIGURED", f"Configure the {role} model in Settings.", 409)
+        capabilities = json.loads(row["capabilities_json"])
         return (
             ModelInput(
                 base_url=row["base_url"],
                 model_id=row["model_id"],
                 max_context_tokens=row["max_context_tokens"],
+                **{
+                    name: capabilities[name]
+                    for name in ("speech_protocol", "voice_a", "voice_b")
+                    if name in capabilities
+                },
             ),
             self.secrets.get(row["api_key_secret_ref"]),
-            json.loads(row["capabilities_json"]),
+            capabilities,
         )
 
     def input_key(self, role: str, config: ModelInput) -> str:

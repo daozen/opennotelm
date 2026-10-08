@@ -103,3 +103,24 @@ it('keeps drafts and restores rejected browser history; library-only changes do 
   fireEvent.click(screen.getByText('Home'));
   expect(window.location.pathname).toBe('/');
 });
+
+it('artifact library filters and mind map nodes remain addressable', () => {
+  const library = {
+    view: 'artifacts' as const,
+    notebookId: 'book',
+    artifactKind: 'mindmap' as const,
+  };
+  expect(parseRoute(new URL(routeUrl(library), 'http://localhost'))).toMatchObject(library);
+  const map = {
+    view: 'mindmap' as const,
+    notebookId: 'book',
+    itemId: 'map',
+    mapNodeId: 'N4',
+    artifactKind: 'mindmap' as const,
+  };
+  expect(routeUrl(map)).toBe('/notebooks/book/mindmaps/map?type=mindmap&node=N4');
+  expect(parseRoute(new URL(routeUrl(map), 'http://localhost'))).toMatchObject(map);
+  expect(
+    parseRoute(new URL('http://localhost/notebooks/book/artifacts?type=bad')),
+  ).not.toHaveProperty('artifactKind', 'bad');
+});

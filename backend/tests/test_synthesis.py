@@ -1,6 +1,11 @@
 import asyncio
+import json
 from types import SimpleNamespace
 
+import pytest
+from opennotelm.citations import INSUFFICIENT
+from opennotelm.errors import AppError
+from opennotelm.generation_attempts import JOB_DIAGNOSTICS, RESPONSE_METADATA
 from opennotelm.schemas import ModelInput
 from test_models import config
 
@@ -143,3 +148,111 @@ def test_language_is_in_every_reduction_and_checkpoint_signature(client):
     asyncio.run(synthesis.run(blocks, context, output_language="ar"))
     assert len(calls) > previous_calls
     assert all("Arabic" in call[0]["content"] for call in calls[previous_calls:])
+
+
+@pytest.mark.parametrize(
+    ("candidate", "metadata", "reason"),
+    [
+        ("PRIVATE_DOSSIER without references", {}, "citation_missing"),
+        ("PRIVATE_DOSSIER [[Eparent]]", {}, "citation_primary_missing"),
+        ("PRIVATE_DOSSIER [[Einvented]]", {}, "evidence"),
+        ("PRIVATE_DOSSIER [[E1]]", {"finish_reason": "length"}, "output_truncated"),
+        ("PRIVATE_DOSSIER [[E1]]", {"completion_tokens": 3000}, "output_tokens"),
+        ("PRIVATE_DOSSIER " * 1500 + " [[E1]]", {"completion_tokens": 10}, "output_bytes"),
+        (INSUFFICIENT, {}, "synthesis_insufficient"),
+    ],
+    ids=["missing", "background-only", "unknown", "truncated", "tokens", "bytes", "insufficient"],
+)
+def test_reading_diagnostics_identify_the_failed_rule_without_storing_content(
+    client, candidate, metadata, reason
+):
+    assert client.post("/api/settings/models/test", json=config()).status_code == 200
+    with client.app.state.db.connect() as conn:
+        conn.execute(
+            "INSERT INTO jobs(id,type,entity_id,status,stage,payload_json,created_at) "
+            "VALUES ('reading-rules','podcast_generate','test','completed','completed','{}','now')"
+        )
+    context = SimpleNamespace(job={"id": "reading-rules"})
+    calls = []
+
+    async def text(*args, **kwargs):
+        calls.append(args[2])
+        RESPONSE_METADATA.set({"finish_reason": "stop", **metadata})
+        return candidate
+
+    client.app.state.models.gateway.text = text
+    diagnostic = JOB_DIAGNOSTICS.set((client.app.state.db, context.job["id"]))
+    response = RESPONSE_METADATA.set({})
+    try:
+        with pytest.raises(AppError, match="PODCAST_READING_INVALID"):
+            asyncio.run(
+                client.app.state.knowledge.synthesis.complete(
+                    [{"id": "E1", "text": "PRIVATE_SOURCE"}],
+                    ModelInput(base_url="https://example.com/v1", model_id="test"),
+                    "",
+                    context,
+                    "reading",
+                    compact=True,
+                    purpose="podcast",
+                    work_context={"evidence_ids": ["Eparent"]},
+                )
+            )
+    finally:
+        JOB_DIAGNOSTICS.reset(diagnostic)
+        RESPONSE_METADATA.reset(response)
+    with client.app.state.db.connect() as conn:
+        attempts = [
+            json.loads(row[0])
+            for row in conn.execute(
+                "SELECT metadata_json FROM generation_attempts WHERE job_id='reading-rules'"
+            )
+        ]
+        assert not conn.execute(
+            "SELECT 1 FROM synthesis_checkpoints WHERE job_id='reading-rules'"
+        ).fetchone()
+    assert len(attempts) == 2
+    assert all(reason in {issue["code"] for issue in attempt["issues"]} for attempt in attempts)
+    assert "PRIVATE" not in json.dumps(attempts)
+    assert "Einvented" not in json.dumps(attempts)
+    if reason == "evidence":
+        assert "Einvented" not in calls[1][0]["content"]
+        assert "Einvented" in calls[1][1]["content"]
+    if reason in ("output_tokens", "output_bytes"):
+        issue = next(issue for issue in attempts[0]["issues"] if issue["code"] == reason)
+        assert issue["actual_length"] > issue["max_length"]
+
+
+def test_podcast_dossier_citations_are_explicit_internal_metadata_and_valid_output_is_reused(
+    client,
+):
+    assert client.post("/api/settings/models/test", json=config()).status_code == 200
+    with client.app.state.db.connect() as conn:
+        conn.execute(
+            "INSERT INTO jobs(id,type,entity_id,status,stage,payload_json,created_at) "
+            "VALUES ('reading-format','podcast_generate','test','completed','completed','{}','now')"
+        )
+    calls = []
+
+    async def text(model, key, messages, **kwargs):
+        calls.append(messages)
+        return "# Reading\n\nA useful explanation [[Ecurrent_1]]."
+
+    client.app.state.models.gateway.text = text
+
+    async def complete():
+        return await client.app.state.knowledge.synthesis.complete(
+            [{"id": "Ecurrent_1", "text": "Original material"}],
+            ModelInput(base_url="https://example.com/v1", model_id="test"),
+            "",
+            SimpleNamespace(job={"id": "reading-format"}),
+            "final",
+            compact=False,
+            purpose="podcast",
+        )
+
+    output = asyncio.run(complete())
+    assert "[[Ecurrent_1]]" in calls[0][0]["content"]
+    assert "NOT the spoken podcast script" in calls[0][0]["content"]
+    assert "NOT be read aloud" in calls[0][0]["content"]
+    assert asyncio.run(complete()) == output
+    assert len(calls) == 1

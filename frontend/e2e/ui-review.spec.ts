@@ -114,7 +114,7 @@ test('small-screen sections keep chat drafts and open sources in the reading wor
     await sections.getByRole('button', { name: '资料与知识', exact: true }).click();
     await expect(question).not.toBeVisible();
     await expect(page.locator('#workspace-library')).toBeVisible();
-    await sections.getByRole('button', { name: '演示文稿', exact: true }).click();
+    await sections.getByRole('button', { name: '创作空间', exact: true }).click();
     await expect(page.locator('#workspace-studio')).toBeVisible();
     await sections.getByRole('button', { name: '工作区', exact: true }).click();
     await expect(question).toHaveValue('尚未发送的完整问题');
