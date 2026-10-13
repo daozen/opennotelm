@@ -1,5 +1,6 @@
 import Modal from './Modal';
-import CreatePodcast, { CreateMindMap } from './CreatePodcast';
+import CreatePodcast, { CreateMindMap, CreateStudy } from './CreatePodcast';
+import StudyView, { studyStatus } from './Study';
 import MindMapView, { mindmapStatus } from './MindMap';
 import ArtifactStudio, { kindLabel, type StudioItem } from './ArtifactStudio';
 import ArtifactDeleteDialog, { artifactPath, type ArtifactKind } from './ArtifactDeleteDialog';
@@ -17,6 +18,8 @@ import {
   type DeckSummary,
   type PodcastSummary,
   type MindMap,
+  type StudyArtifact,
+  type StudyKind,
   type SourceNode,
 } from './api';
 import Reader from './Reader';
@@ -58,6 +61,8 @@ export default function Workspace({
   const [decks, setDecks] = useState<DeckSummary[]>([]);
   const [deletingDeck, setDeletingDeck] = useState<DeckSummary>();
   const [mindmaps, setMindmaps] = useState<MindMap[]>([]);
+  const [studies, setStudies] = useState<StudyArtifact[]>([]);
+  const [studyCreation, setStudyCreation] = useState<StudyKind>();
   const [mapCreation, setMapCreation] = useState(false);
   const [deletingArtifact, setDeletingArtifact] = useState<StudioItem>();
   const deckRefreshVersion = useRef(0);
@@ -71,6 +76,7 @@ export default function Workspace({
       mounted.current = false;
     };
   }, []);
+  const studyId = ['quiz', 'flashcards'].includes(route.view) ? route.itemId : undefined;
   const mindmapId = route.view === 'mindmap' ? route.itemId : undefined;
   const podcastId = route.view === 'podcast' ? route.itemId : undefined;
   const deckId = route.view === 'deck' ? route.itemId : undefined;
@@ -90,6 +96,7 @@ export default function Workspace({
         blockId: undefined,
         slideId: undefined,
         mapNodeId: undefined,
+        studyItemId: undefined,
         ...extra,
       },
       { guarded },
@@ -122,13 +129,16 @@ export default function Workspace({
   const refresh = useCallback(async () => {
     const deckVersion = ++deckRefreshVersion.current;
     const version = selectionVersion.current;
-    const [result, knowledgeList, deckList, podcastList, mapList] = await Promise.all([
-      api<Source[]>(`/notebooks/${notebook.id}/sources`),
-      api<KnowledgePage[]>(`/notebooks/${notebook.id}/knowledge`),
-      api<DeckSummary[]>(`/notebooks/${notebook.id}/decks`),
-      api<PodcastSummary[]>(`/notebooks/${notebook.id}/podcasts`),
-      api<MindMap[]>(`/notebooks/${notebook.id}/mindmaps`),
-    ]);
+    const [result, knowledgeList, deckList, podcastList, mapList, quizList, cardList] =
+      await Promise.all([
+        api<Source[]>(`/notebooks/${notebook.id}/sources`),
+        api<KnowledgePage[]>(`/notebooks/${notebook.id}/knowledge`),
+        api<DeckSummary[]>(`/notebooks/${notebook.id}/decks`),
+        api<PodcastSummary[]>(`/notebooks/${notebook.id}/podcasts`),
+        api<MindMap[]>(`/notebooks/${notebook.id}/mindmaps`),
+        api<StudyArtifact[]>(`/notebooks/${notebook.id}/quizzes`),
+        api<StudyArtifact[]>(`/notebooks/${notebook.id}/flashcards`),
+      ]);
     if (!mounted.current) return;
     setLoadError('');
     setLibraryLoading(false);
@@ -143,6 +153,7 @@ export default function Workspace({
       setDecks(deckList);
       setPodcasts(podcastList);
       setMindmaps(mapList);
+      setStudies([...quizList, ...cardList]);
     }
   }, [notebook.id]);
   useEffect(() => {
@@ -298,6 +309,20 @@ export default function Workspace({
       resumable:
         !!p.job && !['queued', 'running'].includes(p.job.status) && p.status !== 'completed',
     })),
+    ...studies.map((s) => ({
+      id: s.id,
+      kind: s.kind,
+      title: s.title,
+      status: s.status,
+      jobStatus: s.job?.status,
+      statusLabel: studyStatus[s.job?.status === 'cancelled' ? 'paused' : s.status] ?? '等待生成',
+      summary: t(s.kind === 'quiz' ? '{{count}} 道题' : '{{count}} 张闪卡', {
+        count: s.item_count ?? 0,
+      }),
+      createdAt: s.created_at,
+      download_available: s.download_available,
+      resumable: ['failed', 'cancelled'].includes(s.job?.status ?? ''),
+    })),
     ...mindmaps.map((m) => ({
       id: m.id,
       kind: 'mindmap' as const,
@@ -331,7 +356,8 @@ export default function Workspace({
       onCreate={(kind) => {
         if (kind === 'deck') setDeckCreation({ scope: creationScope, label: creationLabel });
         else if (kind === 'podcast') setPodcastCreation(true);
-        else setMapCreation(true);
+        else if (kind === 'mindmap') setMapCreation(true);
+        else setStudyCreation(kind);
       }}
       onAction={async (item, action) => {
         await api(`/${artifactPath(item.kind)}/${item.id}/${action}`, { method: 'POST' });
@@ -384,7 +410,7 @@ export default function Workspace({
         >
           {t('全部产物')}
         </button>
-        {['deck', 'podcast', 'mindmap'].includes(route.view) && (
+        {['deck', 'podcast', 'mindmap', 'quiz', 'flashcards'].includes(route.view) && (
           <label>
             {t('切换产物')}
             <select
@@ -648,6 +674,25 @@ export default function Workspace({
 
               {studio(false)}
             </>
+          ) : studyId ? (
+            <StudyView
+              key={studyId}
+              id={studyId}
+              kind={route.view as StudyKind}
+              selectedItemId={route.studyItemId}
+              onSelectItem={(studyItemId) =>
+                go({ ...route, studyItemId }, { guarded: false, replace: true })
+              }
+              onBack={() => show('artifacts')}
+              onChanged={() => void refresh()}
+              onDeleted={() => {
+                setStudies((list) => list.filter((s) => s.id !== studyId));
+                show('artifacts', undefined, {}, false);
+                void refresh();
+              }}
+              onOpenSource={openSource}
+              onOpenKnowledge={(pageId) => show('knowledge', pageId)}
+            />
           ) : mindmapId ? (
             <MindMapView
               key={mindmapId}
@@ -827,7 +872,26 @@ export default function Workspace({
               show('artifacts', undefined, {}, false);
             setPodcasts((list) => list.filter((p) => p.id !== deletingArtifact.id));
             setMindmaps((list) => list.filter((m) => m.id !== deletingArtifact.id));
+            setStudies((list) => list.filter((s) => s.id !== deletingArtifact.id));
             setDeletingArtifact(undefined);
+            void refresh();
+          }}
+        />
+      )}
+      {studyCreation && (
+        <CreateStudy
+          kind={studyCreation}
+          notebookId={notebook.id}
+          initialScope={creationScope}
+          initialLabel={creationLabel}
+          initialLanguage={outputLanguage}
+          sources={sources}
+          pages={pages}
+          onClose={() => setStudyCreation(undefined)}
+          onCreated={(s, count = 1) => {
+            setStudyCreation(undefined);
+            setBatchNotice(count);
+            show(s.kind, s.id);
             void refresh();
           }}
         />

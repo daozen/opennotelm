@@ -27,7 +27,7 @@ BUNDLE_TTL = 30 * 60
 
 class ArtifactRef(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    kind: Literal["deck", "podcast", "mindmap"]
+    kind: Literal["deck", "podcast", "mindmap", "quiz", "flashcards"]
     id: str = Field(pattern=r"^[a-f0-9]{32}$")
 
 

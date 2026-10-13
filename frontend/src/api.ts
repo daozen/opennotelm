@@ -359,3 +359,41 @@ export type MindMap = {
   created_at: string;
   node_count?: number;
 };
+
+export type StudyKind = 'quiz' | 'flashcards';
+export type StudyItem = {
+  id: string;
+  question?: string;
+  options?: { id: string; text: string }[];
+  front?: string;
+  back?: string;
+  evidence_ids: string[];
+};
+export type StudyProgress = {
+  revision: number;
+  responses: Record<
+    string,
+    { choice: string; correct?: boolean; correct_option_id?: string; explanation?: string }
+  >;
+};
+export type StudyArtifact = {
+  id: string;
+  notebook_id: string;
+  kind: StudyKind;
+  title: string;
+  status: string;
+  input: {
+    scope: DeckScope;
+    language: string;
+    instruction: string;
+    count: number;
+    difficulty: string;
+  };
+  content: { title: string; items: StudyItem[] } | null;
+  progress: StudyProgress;
+  citations: Record<string, string>;
+  job: Job | null;
+  download_available: boolean;
+  item_count?: number;
+  created_at?: string;
+};

@@ -3176,3 +3176,147 @@ summary:focus-visible {
     height: calc(100dvh - 16px);
   }
 }
+
+/* Study artifacts share the Studio shell and keep controls usable on narrow screens. */
+.study-workbench {
+  margin-block: 1.5rem;
+  max-width: 960px;
+  margin-inline: auto;
+}
+.study-progress {
+  display: grid;
+  gap: 0.7rem;
+  margin-block-end: 1rem;
+}
+.study-progress progress {
+  width: 100%;
+  accent-color: var(--forest, #315b48);
+}
+.study-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-block: 1.5rem;
+}
+.quiz-question {
+  border: 1px solid var(--line, #dce3d7);
+  border-radius: 16px;
+  padding: clamp(1rem, 3vw, 2rem);
+  background: var(--paper, #fffef9);
+}
+.quiz-question fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 1rem;
+  min-width: 0;
+}
+.quiz-question legend {
+  font-weight: 650;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-block-end: 1.3rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.quiz-options {
+  display: grid;
+  gap: 0.75rem;
+}
+.quiz-option {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.8rem;
+  border: 1px solid #dce3d7;
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+}
+.quiz-option input {
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
+}
+.quiz-option span {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.quiz-option.correct {
+  border-color: #54794b;
+  background: #edf5e9;
+}
+.quiz-option.incorrect {
+  border-color: #c79b87;
+  background: #fff3ee;
+}
+.quiz-feedback {
+  border-block-start: 1px solid #dce3d7;
+  padding-block-start: 1rem;
+  line-height: 1.8;
+}
+.quiz-feedback p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.flashcard {
+  display: grid;
+  width: 100%;
+  min-height: min(420px, 60dvh);
+  padding: clamp(1.2rem, 4vw, 3rem);
+  border-radius: 18px;
+  border: 1px solid #cedac5;
+  color: #283b30;
+  background: #f3f6ec;
+  text-align: center;
+  gap: 1.2rem;
+  cursor: pointer;
+}
+.flashcard.flipped {
+  background: #fffef9;
+}
+.flashcard > span {
+  align-self: center;
+  font-size: clamp(1.05rem, 2vw, 1.4rem);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.flashcard small {
+  color: #5b7055;
+}
+.flashcard small:last-child {
+  align-self: end;
+}
+.study-rating {
+  justify-content: center;
+  margin-block: 1rem;
+}
+.study-citations {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-block: 0.6rem;
+}
+.study-item-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-block: 1.2rem;
+}
+.study-item-list button {
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0.4rem;
+}
+.study-complete {
+  padding: 1rem;
+  border-radius: 10px;
+  background: #eaf1e0;
+  font-weight: 650;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .flashcard {
+    transition: background 150ms;
+  }
+}

@@ -9,7 +9,7 @@ def test_migrations_repeat_and_foreign_keys(tmp_path):
     db.migrate()
     db.migrate()
     with db.connect() as conn:
-        assert conn.execute("SELECT count(*) FROM schema_migrations").fetchone()[0] == 21
+        assert conn.execute("SELECT count(*) FROM schema_migrations").fetchone()[0] == 22
         with pytest.raises(sqlite3.IntegrityError):
             conn.execute("INSERT INTO notebook_sources VALUES ('missing','missing',0,1,'now')")
 
@@ -92,4 +92,46 @@ def test_mindmap_upgrade_preserves_podcast_citations_and_deletion_trigger(tmp_pa
         conn.execute("DELETE FROM podcasts WHERE id='episode'")
         assert conn.execute("SELECT count(*) FROM citations").fetchone()[0] == 0
         assert conn.execute("SELECT count(*) FROM citation_spans").fetchone()[0] == 0
+        assert not conn.execute("PRAGMA foreign_key_check").fetchall()
+
+
+def test_study_upgrade_preserves_mindmap_content_spans_and_delete_trigger(tmp_path):
+    from pathlib import Path
+
+    import opennotelm.db
+
+    migrations = Path(opennotelm.db.__file__).parent / "migrations"
+    old = tmp_path / "through-021"
+    old.mkdir()
+    for file in migrations.glob("*.sql"):
+        if file.name < "022":
+            (old / file.name).write_bytes(file.read_bytes())
+    db = Database(tmp_path / "app.db")
+    db.migrate(old)
+    with db.connect() as conn:
+        conn.execute("INSERT INTO notebooks VALUES ('book','Book','','now','now')")
+        conn.execute(
+            "INSERT INTO mindmaps(id,notebook_id,title,input_json,source_scope_json,"
+            "source_manifest_json,settings_json,tree_json,created_at,updated_at) "
+            "VALUES ('map','book','Map','{}','{}','{}','{}','{\"nodes\":[]}', 'now','now')"
+        )
+        conn.execute("INSERT INTO citations VALUES ('cite','book','mindmap','map','E1','now')")
+        conn.execute("INSERT INTO citation_spans VALUES ('cite',0,'source','block',17,93)")
+        before = tuple(conn.execute("SELECT * FROM mindmaps").fetchone())
+    db.migrate()
+    db.migrate()
+    with db.connect() as conn:
+        assert tuple(conn.execute("SELECT * FROM mindmaps").fetchone()) == before
+        assert tuple(conn.execute("SELECT * FROM citation_spans").fetchone()) == (
+            "cite",
+            0,
+            "source",
+            "block",
+            17,
+            93,
+        )
+        conn.execute("DELETE FROM mindmaps WHERE id='map'")
+        assert conn.execute("SELECT count(*) FROM citations").fetchone()[0] == 0
+        assert conn.execute("SELECT count(*) FROM citation_spans").fetchone()[0] == 0
+        assert conn.execute("SELECT * FROM garbage_files").fetchone()[0] == "mindmaps/map"
         assert not conn.execute("PRAGMA foreign_key_check").fetchall()

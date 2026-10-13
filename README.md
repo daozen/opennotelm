@@ -4,7 +4,7 @@
 
 Turn books, documents and web articles into understanding—and into visual stories
 you can share. OpenNoteLM is a local-first, self-hosted AI notebook with cited
-answers, reusable knowledge pages, illustrated **Visual Decks**, **Podcasts** and
+answers, reusable knowledge pages, illustrated **Visual Decks**, **Podcasts**, quizzes, flashcards and
 interactive **mind maps**.
 
 **Read → ask with citations → build knowledge → create Decks, Podcasts and mind maps**
@@ -60,6 +60,9 @@ and original source.*
 - **Map the ideas:** generate source-linked mind maps from documents, chapters or
   knowledge pages. Explore explanations and citations, collapse branches, pan and
   zoom, or export SVG, Markdown and JSON.
+- **Practice what you read:** generate cited single-choice quizzes with explanations and saved
+  scores, or flip flashcards and review concepts you have not mastered. Choose sources, chapters,
+  difficulty and up to 40 questions/cards; export study material with answers.
 - **One Studio for your artifacts:** search, filter, switch between artifact types
   and batch-download ready files. Reuse previous generation instructions and inspect
   the original request on saved artifacts.

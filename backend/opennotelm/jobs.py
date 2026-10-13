@@ -217,7 +217,7 @@ class JobService:
                     reservations.append((candidate, access))
             # Alternate task families when possible, preserving resource FIFO.
             # A large Deck batch must not monopolize every newly available slot.
-            groups = ("source", "deck", "podcast", "mindmap", "interactive")
+            groups = ("source", "deck", "podcast", "mindmap", "study", "interactive")
             if candidates and self.last_group is not None:
                 offset = groups.index(self.last_group) + 1
                 row = min(
@@ -241,6 +241,8 @@ class JobService:
             return "deck"
         if job["type"] == "podcast_generate":
             return "podcast"
+        if job["type"] in ("quiz_generate", "flashcards_generate"):
+            return "study"
         if job["type"] == "mindmap_generate":
             return "mindmap"
         return "interactive"
@@ -267,8 +269,18 @@ class JobService:
                             "SELECT source_id FROM citation_spans WHERE citation_id=?", (identity,)
                         )
                     )
-        if job["type"] in ("podcast_generate", "mindmap_generate"):
-            table = "podcasts" if job["type"] == "podcast_generate" else "mindmaps"
+        if job["type"] in (
+            "podcast_generate",
+            "mindmap_generate",
+            "quiz_generate",
+            "flashcards_generate",
+        ):
+            table = {
+                "podcast_generate": "podcasts",
+                "mindmap_generate": "mindmaps",
+                "quiz_generate": "quizzes",
+                "flashcards_generate": "flashcards",
+            }[job["type"]]
             episode = conn.execute(
                 f"SELECT source_scope_json,knowledge_snapshot_json FROM {table} WHERE id=?",
                 (job["entity_id"],),

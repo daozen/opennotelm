@@ -136,6 +136,8 @@ class Settings:
             "exports",
             "podcasts",
             "mindmaps",
+            "quizzes",
+            "flashcards",
             "vector",
             "cache",
             "secrets",

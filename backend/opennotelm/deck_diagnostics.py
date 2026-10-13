@@ -7,6 +7,12 @@ from .error_codes import safe_error_code
 from .generation_attempts import safe_attempt
 
 ATTEMPT_STAGES = {
+    "MindMapTree",
+    "mindmap",
+    "QuizContent",
+    "FlashcardContent",
+    "quiz",
+    "flashcards",
     "DeckPreferences",
     "DeckBrief",
     "DeckPlan",

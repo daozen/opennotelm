@@ -6,6 +6,8 @@ import {
   api,
   type Podcast,
   type MindMap,
+  type StudyArtifact,
+  type StudyKind,
   type DeckScope,
   type Source,
   type KnowledgePage,
@@ -46,6 +48,22 @@ export function CreateMindMap({
     />
   );
 }
+export function CreateStudy({
+  kind,
+  onCreated,
+  ...props
+}: CreateProps & {
+  kind: StudyKind;
+  onCreated: (value: StudyArtifact, count?: number) => void;
+}) {
+  return (
+    <CreateTextArtifact
+      {...props}
+      kind={kind}
+      onCreated={(value, count) => onCreated(value as StudyArtifact, count)}
+    />
+  );
+}
 function CreateTextArtifact({
   notebookId,
   initialScope,
@@ -57,11 +75,46 @@ function CreateTextArtifact({
   onCreated,
   kind,
 }: CreateProps & {
-  kind: 'podcast' | 'mindmap';
-  onCreated: (artifact: Podcast | MindMap, count?: number) => void;
+  kind: 'podcast' | 'mindmap' | StudyKind;
+  onCreated: (artifact: Podcast | MindMap | StudyArtifact, count?: number) => void;
 }) {
   const isMap = kind === 'mindmap';
-  const endpoint = isMap ? 'mindmaps' : 'podcasts';
+  const isStudy = kind === 'quiz' || kind === 'flashcards';
+  const endpoint = {
+    mindmap: 'mindmaps',
+    podcast: 'podcasts',
+    quiz: 'quizzes',
+    flashcards: 'flashcards',
+  }[kind];
+  const texts = {
+    quiz: {
+      title: '生成测试题',
+      close: '关闭测试题创建',
+      description: '通过作答检验理解，查看解释与原文出处。',
+      process: '基于所选资料生成单选题，作答后显示答案和解释。',
+      merged: '合并生成一份测试题',
+      scope: '测试题内容范围',
+      name: '测试题名称',
+      naming: '每份测试题只使用一个来源时可沿用来源名称。',
+      language: '测试题语言',
+      summary: '将生成 {{count}} 份测试题。',
+      batch: '每份产物独立排队，可分别停止或继续；每批最多 100 份。',
+    },
+    flashcards: {
+      title: '生成闪卡',
+      close: '关闭闪卡创建',
+      description: '翻卡回忆关键概念，复习尚未掌握的内容。',
+      process: '基于所选资料生成问答闪卡，掌握情况会自动保存。',
+      merged: '合并生成一份闪卡',
+      scope: '闪卡内容范围',
+      name: '闪卡名称',
+      naming: '每份闪卡只使用一个来源时可沿用来源名称。',
+      language: '闪卡语言',
+      summary: '将生成 {{count}} 份闪卡。',
+      batch: '每份产物独立排队，可分别停止或继续；每批最多 100 份。',
+    },
+  };
+  const studyText = isStudy ? texts[kind as StudyKind] : undefined;
   const uiLanguage = useI18n();
   const options: { key: string; label: string; scope: DeckScope }[] = [
     {
@@ -97,6 +150,7 @@ function CreateTextArtifact({
           : 'selected';
   const [selection, setSelection] = useState(initial);
   const [count, setCount] = useState(10);
+  const [difficulty, setDifficulty] = useState('mixed');
   const [format, setFormat] = useState('dialogue');
   const [scriptOnly, setScriptOnly] = useState(false);
   const [language, setLanguage] = useState<string>(initialLanguage ?? uiLanguage);
@@ -158,7 +212,11 @@ function CreateTextArtifact({
             if (invalid) return;
             const payload = {
               scope,
-              ...(!isMap ? { target_minutes: count, format, script_only: scriptOnly } : {}),
+              ...(kind === 'podcast'
+                ? { target_minutes: count, format, script_only: scriptOnly }
+                : isStudy
+                  ? { count, difficulty }
+                  : {}),
               language,
               instruction,
               title_mode: sourceNaming ? titleMode : 'auto',
@@ -173,20 +231,25 @@ function CreateTextArtifact({
                     .map((v) => v.toString(16).padStart(2, '0'))
                     .join(''),
                 };
-              const batch = await api<{ podcasts?: Podcast[]; mindmaps?: MindMap[] }>(
-                `/notebooks/${notebookId}/${endpoint}/batch`,
-                {
-                  method: 'POST',
-                  body: JSON.stringify({ ...payload, request_key: submitted.current.key }),
-                },
-              );
-              const items = isMap ? batch.mindmaps! : batch.podcasts!;
+              const batch = await api<{
+                podcasts?: Podcast[];
+                mindmaps?: MindMap[];
+                quizzes?: StudyArtifact[];
+                flashcards?: StudyArtifact[];
+              }>(`/notebooks/${notebookId}/${endpoint}/batch`, {
+                method: 'POST',
+                body: JSON.stringify({ ...payload, request_key: submitted.current.key }),
+              });
+              const items = batch[endpoint as keyof typeof batch]!;
               onCreated(items[0], items.length);
             } else {
-              const podcast = await api<Podcast | MindMap>(`/notebooks/${notebookId}/${endpoint}`, {
-                method: 'POST',
-                body: JSON.stringify(payload),
-              });
+              const podcast = await api<Podcast | MindMap | StudyArtifact>(
+                `/notebooks/${notebookId}/${endpoint}`,
+                {
+                  method: 'POST',
+                  body: JSON.stringify(payload),
+                },
+              );
               onCreated(podcast, 1);
             }
           } catch (e) {
@@ -197,11 +260,13 @@ function CreateTextArtifact({
         }}
       >
         <div className="dialog-top">
-          <h2 id="deck-create-title">{t(isMap ? '生成思维导图' : '生成 Podcast')}</h2>
+          <h2 id="deck-create-title">
+            {t(studyText?.title ?? (isMap ? '生成思维导图' : '生成 Podcast'))}
+          </h2>
           <button
             type="button"
             className="icon-button"
-            aria-label={t(isMap ? '关闭思维导图创建' : '关闭 Podcast 创建')}
+            aria-label={t(studyText?.close ?? (isMap ? '关闭思维导图创建' : '关闭 Podcast 创建'))}
             disabled={busy}
             onClick={onClose}
           >
@@ -210,16 +275,18 @@ function CreateTextArtifact({
         </div>
         <p className="help">
           {t(
-            isMap
-              ? '梳理核心概念与关系，支持展开分支和查看原文出处。'
-              : '基于资料生成有出处的解说，支持双人对话与单人讲述。',
+            studyText?.description ??
+              (isMap
+                ? '梳理核心概念与关系，支持展开分支和查看原文出处。'
+                : '基于资料生成有出处的解说，支持双人对话与单人讲述。'),
           )}
         </p>
         <p className="help">
           {t(
-            isMap
-              ? '先完整阅读所选资料，再生成可交互的概念层级。'
-              : '先阅读资料、编写台词，再逐段合成语音；已完成的部分可继续使用。',
+            studyText?.process ??
+              (isMap
+                ? '先完整阅读所选资料，再生成可交互的概念层级。'
+                : '先阅读资料、编写台词，再逐段合成语音；已完成的部分可继续使用。'),
           )}
         </p>
         <fieldset className="deck-options" disabled={busy}>
@@ -232,7 +299,7 @@ function CreateTextArtifact({
                 checked={mode === 'merged'}
                 onChange={() => setMode('merged')}
               />
-              {t(isMap ? '合并生成一份思维导图' : '合并生成一期 Podcast')}
+              {t(studyText?.merged ?? (isMap ? '合并生成一份思维导图' : '合并生成一期 Podcast'))}
             </label>
             <label>
               <input
@@ -247,7 +314,7 @@ function CreateTextArtifact({
           <label>
             {t('内容范围')}
             <select
-              aria-label={t(isMap ? '思维导图内容范围' : 'Podcast 内容范围')}
+              aria-label={t(studyText?.scope ?? (isMap ? '思维导图内容范围' : 'Podcast 内容范围'))}
               value={selection}
               onChange={(e) => {
                 setSelection(e.target.value);
@@ -308,7 +375,7 @@ function CreateTextArtifact({
             />
           )}
           <fieldset className="deck-generation-mode">
-            <legend>{t(isMap ? '思维导图名称' : 'Podcast 名称')}</legend>
+            <legend>{t(studyText?.name ?? (isMap ? '思维导图名称' : 'Podcast 名称'))}</legend>
             <label>
               <input
                 type="radio"
@@ -330,14 +397,15 @@ function CreateTextArtifact({
             </label>
             <p className="help">
               {t(
-                isMap
-                  ? '每份导图只使用一个来源时可沿用来源名称。'
-                  : '每期节目只使用一个来源时可沿用来源名称。',
+                studyText?.naming ??
+                  (isMap
+                    ? '每份导图只使用一个来源时可沿用来源名称。'
+                    : '每期节目只使用一个来源时可沿用来源名称。'),
               )}{' '}
               {t('章节命名格式：资料名称-目录序号-章节名称（子章节如 1.2）。')}
             </p>
           </fieldset>
-          {!isMap && (
+          {kind === 'podcast' && (
             <>
               <fieldset className="deck-length">
                 <legend>{t('目标时长')}</legend>
@@ -374,10 +442,44 @@ function CreateTextArtifact({
               </p>
             </>
           )}
+          {isStudy && (
+            <>
+              <label>
+                {t('数量（最多）')}
+                <select
+                  aria-label={t('数量（最多）')}
+                  value={count}
+                  onChange={(e) => setCount(Number(e.target.value))}
+                >
+                  {[5, 10, 20, 30, 40].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {kind === 'quiz' && (
+                <label>
+                  {t('难度')}
+                  <select
+                    aria-label={t('难度')}
+                    value={difficulty}
+                    onChange={(e) => setDifficulty(e.target.value)}
+                  >
+                    <option value="mixed">{t('混合')}</option>
+                    <option value="easy">{t('基础')}</option>
+                    <option value="medium">{t('进阶')}</option>
+                    <option value="hard">{t('挑战')}</option>
+                  </select>
+                </label>
+              )}
+              <p className="help">{t('资料较少时会生成更少条目，避免重复或编造内容。')}</p>
+            </>
+          )}
           <label>
             {t('语言')}
             <select
-              aria-label={t(isMap ? '思维导图语言' : 'Podcast 语言')}
+              aria-label={t(studyText?.language ?? (isMap ? '思维导图语言' : 'Podcast 语言'))}
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
             >
@@ -391,9 +493,10 @@ function CreateTextArtifact({
         </fieldset>
         <p className="help deck-generation-summary" role="status">
           {t(
-            isMap
-              ? '将生成 {{count}} 份思维导图。'
-              : '将生成 {{count}} 期节目，每期约 {{minutes}} 分钟。',
+            studyText?.summary ??
+              (isMap
+                ? '将生成 {{count}} 份思维导图。'
+                : '将生成 {{count}} 期节目，每期约 {{minutes}} 分钟。'),
             {
               count: episodeCount,
               minutes: count,
@@ -403,9 +506,10 @@ function CreateTextArtifact({
         {mode === 'separate' && (
           <p className="help">
             {t(
-              isMap
-                ? '每份导图独立排队，可分别停止或继续；每批最多 100 份。'
-                : '每期节目独立排队，可分别停止或继续；每批最多 100 期。',
+              studyText?.batch ??
+                (isMap
+                  ? '每份导图独立排队，可分别停止或继续；每批最多 100 份。'
+                  : '每期节目独立排队，可分别停止或继续；每批最多 100 期。'),
             )}
           </p>
         )}

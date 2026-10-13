@@ -58,15 +58,21 @@ def test_limits_snapshot_order_and_monotonic_progress(client, settings, limit):
     progress, finished = [], []
     active = peak = 0
     second_finished = asyncio.Event()
+    first_wave_started = asyncio.Event()
 
     async def recognize(config, key, data, kind):
         nonlocal active, peak
         active += 1
         peak = max(active, peak)
+        if active == limit:
+            first_wave_started.set()
         # A settings edit during the first request must not resize an active pool.
         service.recognition_settings.save(ImageRecognitionSettingsInput(concurrency=1))
         value = color(data)
         try:
+            # Hold the first wave until every configured slot has entered. A short
+            # sleep cannot establish peak concurrency under decoder/CPU contention.
+            await asyncio.wait_for(first_wave_started.wait(), 5)
             if limit > 1 and value == 0:
                 await second_finished.wait()
             await asyncio.sleep(0.01 + (25 - value) * 0.001)

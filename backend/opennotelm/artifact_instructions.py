@@ -6,7 +6,7 @@ from fastapi import APIRouter, Request
 
 from .db import Database
 
-ArtifactKind = Literal["deck", "podcast", "mindmap"]
+ArtifactKind = Literal["deck", "podcast", "mindmap", "quiz", "flashcards"]
 HISTORY_LIMIT = 20
 router = APIRouter(prefix="/api")
 
@@ -27,6 +27,15 @@ def instruction_history(db: Database, kind: ArtifactKind) -> dict:
             "json_type(input_json,'$.instruction')='text' THEN "
             "json_extract(input_json,'$.instruction') END END",
         ),
+        **{
+            study_kind: (
+                table,
+                "CASE WHEN json_valid(input_json) THEN CASE WHEN "
+                "json_type(input_json,'$.instruction')='text' THEN "
+                "json_extract(input_json,'$.instruction') END END",
+            )
+            for study_kind, table in (("quiz", "quizzes"), ("flashcards", "flashcards"))
+        },
     }[kind]
     items = []
     seen = set()

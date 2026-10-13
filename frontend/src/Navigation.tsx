@@ -19,10 +19,13 @@ export type Route = {
     | 'deck'
     | 'podcast'
     | 'mindmap'
+    | 'quiz'
+    | 'flashcards'
     | 'artifacts'
     | 'missing';
-  artifactKind?: 'deck' | 'podcast' | 'mindmap';
+  artifactKind?: 'deck' | 'podcast' | 'mindmap' | 'quiz' | 'flashcards';
   mapNodeId?: string;
+  studyItemId?: string;
   notebookId?: string;
   itemId?: string;
   library?: 'sources' | 'knowledge';
@@ -56,7 +59,9 @@ export function parseRoute(url: URL): Route {
         ? { kind: 'node', source_id: source, node_id: node }
         : { kind: 'source', source_id: source }
     : { kind: 'selected' };
-  const artifactKind = ['deck', 'podcast', 'mindmap'].includes(query.get('type') ?? '')
+  const artifactKind = ['deck', 'podcast', 'mindmap', 'quiz', 'flashcards'].includes(
+    query.get('type') ?? '',
+  )
     ? (query.get('type') as Route['artifactKind'])
     : undefined;
   if (pieces.length === 3 && pieces[2] === 'artifacts')
@@ -72,9 +77,13 @@ export function parseRoute(url: URL): Route {
           ? 'deck'
           : pieces[2] === 'podcasts'
             ? 'podcast'
-            : pieces[2] === 'mindmaps'
-              ? 'mindmap'
-              : undefined;
+            : pieces[2] === 'quizzes'
+              ? 'quiz'
+              : pieces[2] === 'flashcards'
+                ? 'flashcards'
+                : pieces[2] === 'mindmaps'
+                  ? 'mindmap'
+                  : undefined;
   if (pieces.length !== 4 || !view || !validId(pieces[3] ?? null))
     return { view: 'missing', notebookId };
   const id = (key: string) => (validId(query.get(key)) ? query.get(key)! : undefined);
@@ -88,6 +97,7 @@ export function parseRoute(url: URL): Route {
     ...(view === 'source' ? { nodeId: id('node'), blockId: id('block') } : {}),
     ...(view === 'deck' ? { slideId: id('slide') } : {}),
     ...(view === 'mindmap' ? { mapNodeId: id('node') } : {}),
+    ...(['quiz', 'flashcards'].includes(view) ? { studyItemId: id('item') } : {}),
   };
 }
 
@@ -97,14 +107,18 @@ export function routeUrl(route: Route): string {
   if (route.view === 'artifacts') path += '/artifacts';
   const segment = {
     mindmap: 'mindmaps',
+    quiz: 'quizzes',
+    flashcards: 'flashcards',
     source: 'sources',
     knowledge: 'knowledge',
     deck: 'decks',
     podcast: 'podcasts',
-  }[route.view as 'source' | 'knowledge' | 'deck' | 'podcast' | 'mindmap'];
+  }[route.view as 'source' | 'knowledge' | 'deck' | 'podcast' | 'mindmap' | 'quiz' | 'flashcards'];
   if (segment && route.itemId) path += `/${segment}/${encodeURIComponent(route.itemId)}`;
   const query = new URLSearchParams();
   if (route.artifactKind) query.set('type', route.artifactKind);
+  if (['quiz', 'flashcards'].includes(route.view) && route.studyItemId)
+    query.set('item', route.studyItemId);
   if (route.view === 'mindmap' && route.mapNodeId) query.set('node', route.mapNodeId);
   if (route.library && route.library !== (route.view === 'knowledge' ? 'knowledge' : 'sources'))
     query.set('tab', route.library);

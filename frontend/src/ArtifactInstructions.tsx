@@ -10,7 +10,7 @@ export default function ArtifactInstructions({
   onChange,
   disabled,
 }: {
-  kind: 'deck' | 'podcast' | 'mindmap';
+  kind: 'deck' | 'podcast' | 'mindmap' | 'quiz' | 'flashcards';
   value: string;
   onChange: (value: string) => void;
   disabled: boolean;
@@ -86,11 +86,15 @@ export default function ArtifactInstructions({
         {t('补充说明（可选）')}
         <textarea
           aria-label={
-            kind === 'deck'
-              ? t('Deck 补充说明')
-              : kind === 'mindmap'
-                ? t('思维导图补充说明')
-                : t('Podcast 补充说明')
+            kind === 'quiz'
+              ? t('测试题补充说明')
+              : kind === 'flashcards'
+                ? t('闪卡补充说明')
+                : kind === 'deck'
+                  ? t('Deck 补充说明')
+                  : kind === 'mindmap'
+                    ? t('思维导图补充说明')
+                    : t('Podcast 补充说明')
           }
           disabled={disabled}
           value={value}

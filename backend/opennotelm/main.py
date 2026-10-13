@@ -60,6 +60,8 @@ from .secrets import SecretStore
 from .source_routes import router as source_router
 from .source_service import SourceService
 from .source_vision import SourceVisionService
+from .study import FlashcardService, QuizService
+from .study_routes import router as study_router
 from .task_settings import AdmissionSettings
 from .telemetry import EventProperties, TelemetryService
 from .transformation_routes import router as transformation_router
@@ -142,6 +144,24 @@ def create_app(settings: Settings | None = None, transport=None) -> FastAPI:
                     settings,
                     app.state.decks.work_context,
                 )
+                app.state.quizzes = QuizService(
+                    db,
+                    app.state.jobs,
+                    app.state.models,
+                    app.state.knowledge,
+                    app.state.citations,
+                    settings,
+                    app.state.decks.work_context,
+                )
+                app.state.flashcards = FlashcardService(
+                    db,
+                    app.state.jobs,
+                    app.state.models,
+                    app.state.knowledge,
+                    app.state.citations,
+                    settings,
+                    app.state.decks.work_context,
+                )
                 app.state.composition = CompositionService(db, app.state.models, settings)
                 app.state.assets = AssetService(
                     db, app.state.models, settings, app.state.composition.designs
@@ -157,6 +177,8 @@ def create_app(settings: Settings | None = None, transport=None) -> FastAPI:
                         "deck": DeckDownloadAdapter(db, app.state.pdf_exports, settings),
                         "podcast": PodcastDownloadAdapter(app.state.podcasts),
                         "mindmap": MindMapDownloadAdapter(app.state.mindmaps),
+                        "quiz": MindMapDownloadAdapter(app.state.quizzes),
+                        "flashcards": MindMapDownloadAdapter(app.state.flashcards),
                     },
                 )
                 app.state.revisions = RevisionService(db, app.state.jobs, app.state.decks)
@@ -381,6 +403,8 @@ def create_app(settings: Settings | None = None, transport=None) -> FastAPI:
                 "Cache-Control": "no-store",
             },
         )
+
+    app.include_router(study_router)
 
     if (settings.frontend_dir / "assets").is_dir():
         app.mount("/assets", StaticFiles(directory=settings.frontend_dir / "assets"), name="assets")
