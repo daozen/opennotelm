@@ -123,6 +123,13 @@ MINDMAP_SYNTHESIS_SYSTEM = (
 )
 
 
+STUDY_SYNTHESIS_SYSTEM = (
+    MINDMAP_SYNTHESIS_SYSTEM.replace("mind map", "study material")
+    + " Preserve precise source-supported definitions, contrasts, mechanisms and examples "
+    "for quiz questions and recall cards. Do not add unsupported correct answers. "
+)
+
+
 def pack(items: list[dict], budget: int) -> list[list[dict]]:
     groups, pending = [], []
     for item in items:
@@ -238,7 +245,7 @@ class SynthesisService:
                         "work_context": work_context or {},
                         "preferences": preferences or {},
                     }
-                    if purpose in ("deck", "podcast", "mindmap")
+                    if purpose in ("deck", "podcast", "mindmap", "quiz", "flashcards")
                     else {}
                 ),
                 "task": "Condense all sections into a concise synthesis."
@@ -250,6 +257,12 @@ class SynthesisService:
                     "using headings and nested lists.",
                     "work_context": "Summarize the whole work progression with section labels "
                     "and original-source citations, as context for chapter interpretation.",
+                    "quiz": "Write a source-grounded study dossier preserving mechanisms, "
+                    "contrasts, "
+                    "definitions, application and exact citations for test questions.",
+                    "flashcards": "Write a source-grounded study dossier preserving atomic "
+                    "concepts "
+                    "and precise answers with exact citations for recall flashcards.",
                     "mindmap": "Write a reading dossier preserving key concepts, mechanisms, "
                     "contrasts and original-source citations for a concept mind map.",
                     "podcast": (
@@ -284,6 +297,8 @@ class SynthesisService:
         system = (
             MINDMAP_SYNTHESIS_SYSTEM
             if purpose == "mindmap"
+            else STUDY_SYNTHESIS_SYSTEM
+            if purpose in ("quiz", "flashcards")
             else PODCAST_SYNTHESIS_SYSTEM
             if purpose == "podcast"
             else DECK_SYNTHESIS_SYSTEM
@@ -295,7 +310,7 @@ class SynthesisService:
         if output_language:
             system = system.replace("Use the language of the source material.", "")
             system += "\n" + output_instruction(output_language)
-        if purpose in ("podcast", "mindmap") and primary_ids:
+        if purpose in ("podcast", "mindmap", "quiz", "flashcards") and primary_ids:
             example_id = next(
                 identity for identity in sorted(primary_ids) if isinstance(identity, str)
             )
@@ -536,12 +551,14 @@ class SynthesisService:
                 source_images,
             )
         raise AppError(
-            "MINDMAP_READING_INVALID"
+            "STUDY_READING_INVALID"
+            if purpose in ("quiz", "flashcards")
+            else "MINDMAP_READING_INVALID"
             if purpose == "mindmap"
             else "PODCAST_READING_INVALID"
             if purpose == "podcast"
             else "DECK_UNDERSTANDING_INVALID"
-            if purpose in ("deck", "podcast", "mindmap", "work_context")
+            if purpose in ("deck", "podcast", "mindmap", "quiz", "flashcards", "work_context")
             else "KNOWLEDGE_OUTPUT_INVALID",
             "The model returned an invalid or uncited synthesis. Retry generation.",
             502,
@@ -565,7 +582,8 @@ class SynthesisService:
         config, key = self.models.configured("language")
         originals = (
             await joined_thread(self.visuals.collect, blocks)
-            if self.visuals and purpose in ("deck", "podcast", "mindmap", "work_context")
+            if self.visuals
+            and purpose in ("deck", "podcast", "mindmap", "quiz", "flashcards", "work_context")
             else {}
         )
         evidence = self.evidence(
@@ -638,7 +656,7 @@ class SynthesisService:
                 groups,
                 summarize,
                 CONTENT_CONCURRENCY.get()
-                if purpose in ("deck", "podcast", "mindmap", "work_context")
+                if purpose in ("deck", "podcast", "mindmap", "quiz", "flashcards", "work_context")
                 else 1,
             )
             level += 1

@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Layers, Network, Headphones, Plus, Search, Trash2 } from 'lucide-react';
+import {
+  Layers,
+  Network,
+  Headphones,
+  Plus,
+  Search,
+  Trash2,
+  ListChecks,
+  GalleryVerticalEnd,
+} from 'lucide-react';
 import ArtifactBatchDownload from './ArtifactBatchDownload';
 import { type ArtifactKind } from './ArtifactDeleteDialog';
 import { t, useI18n } from './i18n';
@@ -16,8 +25,34 @@ export type StudioItem = {
   resumable?: boolean;
 };
 export const kindLabel = (kind: ArtifactKind) =>
-  kind === 'mindmap' ? t('思维导图') : kind === 'deck' ? 'Visual Deck' : 'Podcast';
-const icons = { deck: Layers, podcast: Headphones, mindmap: Network };
+  ({
+    mindmap: t('思维导图'),
+    deck: 'Visual Deck',
+    podcast: 'Podcast',
+    quiz: t('测试题'),
+    flashcards: t('闪卡'),
+  })[kind];
+const icons = {
+  deck: Layers,
+  podcast: Headphones,
+  mindmap: Network,
+  quiz: ListChecks,
+  flashcards: GalleryVerticalEnd,
+};
+const creationLabels = {
+  deck: '生成 Visual Deck',
+  podcast: '生成 Podcast',
+  mindmap: '生成思维导图',
+  quiz: '生成测试题',
+  flashcards: '生成闪卡',
+};
+const creationDescriptions = {
+  deck: '将核心内容变成完整图文演示页。',
+  podcast: '把资料变成可收听的解说与对话。',
+  mindmap: '梳理概念层级，展开查看关系和出处。',
+  quiz: '通过作答检验理解，查看解释与原文出处。',
+  flashcards: '翻卡回忆关键概念，复习尚未掌握的内容。',
+};
 export default function ArtifactStudio({
   notebookId,
   items,
@@ -66,44 +101,20 @@ export default function ArtifactStudio({
   return (
     <section className={`artifact-studio${compact ? ' compact' : ''}`} aria-label={t('产物列表')}>
       <div className="artifact-create-grid">
-        {(['deck', 'podcast', 'mindmap'] as const).map((kind) => {
+        {(['deck', 'podcast', 'mindmap', 'quiz', 'flashcards'] as const).map((kind) => {
           const Icon = icons[kind];
           return (
             <button
               key={kind}
               className="button secondary"
-              aria-label={t(
-                kind === 'deck'
-                  ? '生成 Visual Deck'
-                  : kind === 'podcast'
-                    ? '生成 Podcast'
-                    : '生成思维导图',
-              )}
+              aria-label={t(creationLabels[kind])}
               disabled={!canCreate}
               onClick={() => onCreate(kind)}
             >
               <Icon size={compact ? 17 : 24} />
               <span>
-                <strong>
-                  {t(
-                    kind === 'deck'
-                      ? '生成 Visual Deck'
-                      : kind === 'podcast'
-                        ? '生成 Podcast'
-                        : '生成思维导图',
-                  )}
-                </strong>
-                {!compact && (
-                  <small>
-                    {t(
-                      kind === 'deck'
-                        ? '将核心内容变成完整图文演示页。'
-                        : kind === 'podcast'
-                          ? '把资料变成可收听的解说与对话。'
-                          : '梳理概念层级，展开查看关系和出处。',
-                    )}
-                  </small>
-                )}
+                <strong>{t(creationLabels[kind])}</strong>
+                {!compact && <small>{t(creationDescriptions[kind])}</small>}
               </span>
               <Plus size={15} />
             </button>
@@ -132,7 +143,7 @@ export default function ArtifactStudio({
             }
           >
             <option value="all">{t('全部类型')}</option>
-            {(['deck', 'podcast', 'mindmap'] as const).map((kind) => (
+            {(['deck', 'podcast', 'mindmap', 'quiz', 'flashcards'] as const).map((kind) => (
               <option key={kind} value={kind}>
                 {kindLabel(kind)}
               </option>

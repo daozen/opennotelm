@@ -2,9 +2,15 @@ import { useState } from 'react';
 import Modal from './Modal';
 import { api } from './api';
 import { t, useI18n } from './i18n';
-export type ArtifactKind = 'deck' | 'podcast' | 'mindmap';
+export type ArtifactKind = 'deck' | 'podcast' | 'mindmap' | 'quiz' | 'flashcards';
 export const artifactPath = (kind: ArtifactKind) =>
-  ({ deck: 'decks', podcast: 'podcasts', mindmap: 'mindmaps' })[kind];
+  ({
+    deck: 'decks',
+    podcast: 'podcasts',
+    mindmap: 'mindmaps',
+    quiz: 'quizzes',
+    flashcards: 'flashcards',
+  })[kind];
 export default function ArtifactDeleteDialog({
   kind,
   id,

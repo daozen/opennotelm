@@ -68,11 +68,11 @@ The instructions field includes **Previous instructions**: choose from the 20 mo
 recent distinct requests saved in existing artifacts of the same type, across notebooks.
 Selecting one replaces the draft below; you can edit it before generating. Unsent drafts
 are not saved as history. Deleting the last artifact using a request removes it from the list.
-Deck, Podcast and mind-map histories are separate; a history-loading failure still allows manual entry.
+Deck, Podcast, mind-map, quiz and flashcard histories are separate; a history-loading failure still allows manual entry.
 
 ## Review, revise and download
 
-Open **Generation instructions** on a Deck, Podcast or mind map to read its original request.
+Open **Generation instructions** on a Deck, Podcast, mind map, quiz or flashcards to read its original request.
 This is read-only and does not regenerate the artifact; an empty request is indicated explicitly.
 
 Click the image's left/right half or use ↑/↓ to change pages. Inputs/edit dialogs
@@ -136,7 +136,7 @@ resumed episode; restore its settings or create another episode.
 
 ## Studio and mind maps
 
-Open **All artifacts** to create or find Visual Decks, Podcasts and mind maps in one
+Open **All artifacts** to create or find Visual Decks, Podcasts, mind maps, quizzes and flashcards in one
 place. Search by name or filter by type/status; use **Switch artifact** while viewing.
 **Back to Studio** returns to the library. You can stop, resume or delete individual
 items and download ready files together. Deleting an artifact keeps original sources.
@@ -156,3 +156,23 @@ have their own URL and survive refresh. Download SVG for the full diagram, Markd
 for the outline, or JSON for structured content and source references. Batch downloads
 include mind maps as Markdown files. Saved instructions, sources and failure details
 are available in the map view. Stop/resume keeps saved progress.
+
+
+## Quizzes and flashcards
+
+Choose **Create quiz** or **Create flashcards** in Studio. Select documents, a knowledge page
+or chapters in the source tree; combine them or create one artifact per selection. Set the
+language, instructions and a maximum of 5, 10, 20, 30 or 40 items. Quizzes also offer mixed,
+easy, medium and hard difficulty. A short source may produce fewer items.
+
+Quizzes contain single-choice questions. Submit an answer to see the explanation and source
+citations, track your score, and review incorrect answers. Switching questions keeps unsubmitted
+choices while this view stays open; only submitted progress is restored after reloading.
+Flashcards reveal the answer when clicked or with Space/Enter. Mark the revealed card as
+mastered or needing review, then revisit unmastered cards. **Start again** confirms before
+clearing learning progress; it keeps the generated content.
+
+Both types support stop/resume, rename, delete, source details and generation instructions.
+Downloads (Markdown, JSON and mixed artifact ZIPs) include answers for offline study.
+They require the language model, without image generation or Speech. Review generated facts,
+answers and citations; these are study aids, not secure exams or spaced-repetition scheduling.

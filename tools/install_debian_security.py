@@ -4,6 +4,7 @@ import argparse
 import ctypes
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -12,17 +13,38 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 
-def verified_download(entry: dict) -> bytes:
-    url = urlsplit(entry["url"])
+def validate_debian_url(value: str) -> None:
+    """Only official live paths or dated snapshots; never mutable snapshot aliases."""
+    url = urlsplit(value)
+    live = url.netloc == "deb.debian.org" and url.path.startswith("/debian/pool/main/")
+    snapshot = url.netloc == "snapshot.debian.org" and re.fullmatch(
+        r"/archive/debian/[0-9]{8}T[0-9]{6}Z/pool/main/[A-Za-z0-9_+./~%-]+", url.path
+    )
+    # The official dated URLs redirect to content-addressed paths, preserving filenames.
+    blob = url.netloc == "snapshot.debian.org" and re.fullmatch(
+        r"/file/[a-f0-9]{40}(?:/[A-Za-z0-9_+.~%-]+)?", url.path
+    )
     if (
         url.scheme != "https"
-        or url.netloc != "deb.debian.org"
-        or not url.path.startswith("/debian/pool/main/")
+        or not (live or snapshot or blob)
         or url.query
         or url.fragment
+        or "%" in url.path
+        or any(part in (".", "..") for part in url.path.split("/"))
     ):
         raise ValueError("Unexpected Debian security package host/path")
-    with urllib.request.urlopen(entry["url"], timeout=60) as response:
+
+
+class DebianRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validate_debian_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def verified_download(entry: dict) -> bytes:
+    validate_debian_url(entry["url"])
+    opener = urllib.request.build_opener(DebianRedirectHandler())
+    with opener.open(entry["url"], timeout=60) as response:
         data = response.read(30 * 1024 * 1024 + 1)
     if len(data) > 30 * 1024 * 1024:
         raise ValueError("Debian security package exceeds download limit")
@@ -45,7 +67,7 @@ def check_runtime(manifest: dict) -> dict:
         raise ValueError("Debian security package files differ from installed vendor bytes")
     expat = ctypes.CDLL("libexpat.so.1")
     expat.XML_ExpatVersion.restype = ctypes.c_char_p
-    if expat.XML_ExpatVersion() != b"expat_2.8.5":
+    if expat.XML_ExpatVersion() != b"expat_2.9.0":
         raise ValueError("Loaded system Expat differs from reviewed fixed version")
     return installed
 

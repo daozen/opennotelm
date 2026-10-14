@@ -1,3 +1,4 @@
+import { artifactPath } from './ArtifactDeleteDialog';
 import { useState } from 'react';
 import { api } from './api';
 import { t, useI18n, errorText } from './i18n';
@@ -32,6 +33,16 @@ type Report = {
   omitted_attempts: number;
 };
 const stages: Record<string, string> = {
+  QuizContent: '编写测试题',
+  FlashcardContent: '编写闪卡',
+  quiz: '理解资料',
+  flashcards: '理解资料',
+  quiz_reading: '理解资料',
+  flashcards_reading: '理解资料',
+  quiz_writing: '编写测试题',
+  flashcards_writing: '编写闪卡',
+  quiz_exporting: '准备导出',
+  flashcards_exporting: '准备导出',
   MindMapTree: '梳理概念关系',
   mindmap: '理解资料',
   mindmap_reading: '理解资料',
@@ -99,7 +110,7 @@ export default function DeckDiagnostics({
   kind = 'deck',
 }: {
   deckId: string;
-  kind?: 'deck' | 'mindmap';
+  kind?: 'deck' | 'mindmap' | 'quiz' | 'flashcards';
   failed?: boolean;
 }) {
   const uiLanguage = useI18n();
@@ -111,9 +122,7 @@ export default function DeckDiagnostics({
     setLoading(true);
     setError('');
     try {
-      setReport(
-        await api<Report>(`/${kind === 'deck' ? 'decks' : 'mindmaps'}/${deckId}/diagnostics`),
-      );
+      setReport(await api<Report>(`/${artifactPath(kind)}/${deckId}/diagnostics`));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -138,7 +147,9 @@ export default function DeckDiagnostics({
             {t(
               kind === 'deck'
                 ? '包含本 Deck 的历史尝试；校验失败后修复成功的记录也会保留。报告不含原文、提示词或密钥。'
-                : '包含本导图的生成记录，不含原文、自定义说明或密钥。',
+                : kind === 'mindmap'
+                  ? '包含本导图的生成记录，不含原文、自定义说明或密钥。'
+                  : '包含此产物的生成记录，不含原文、自定义说明或密钥。',
             )}
           </p>
           <div className="button-row">
@@ -147,10 +158,10 @@ export default function DeckDiagnostics({
             </button>
             <a
               className="button secondary"
-              href={`/api/${kind === 'deck' ? 'decks' : 'mindmaps'}/${deckId}/diagnostics?download=true`}
+              href={`/api/${artifactPath(kind)}/${deckId}/diagnostics?download=true`}
               download={`${kind}-diagnostics.json`}
             >
-              {t(kind === 'deck' ? '下载本 Deck 诊断报告' : '下载导图诊断报告')}
+              {t(kind === 'deck' ? '下载本 Deck 诊断报告' : '下载诊断报告')}
             </a>
           </div>
           {loading && <p role="status">{t('正在读取诊断记录…')}</p>}

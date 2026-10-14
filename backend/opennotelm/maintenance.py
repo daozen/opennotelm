@@ -10,12 +10,16 @@ from .errors import AppError
 OWNED = {
     "podcasts": "podcasts",
     "mindmaps": "mindmaps",
+    "quizzes": "quizzes",
+    "flashcards": "flashcards",
     "sources": "sources",
     "assets": "assets",
     "renders": "slide_renders",
     "exports": "pdf_exports",
 }
-OWNED_PATH = re.compile(r"(?:sources|assets|renders|exports|podcasts|mindmaps)/[a-f0-9]{32}\Z")
+OWNED_PATH = re.compile(
+    r"(?:sources|assets|renders|exports|podcasts|mindmaps|quizzes|flashcards)/[a-f0-9]{32}\Z"
+)
 
 
 def contains_id(value, identity):
@@ -28,7 +32,7 @@ def contains_id(value, identity):
 
 def discard_source_caches(conn, source_id):
     affected_decks = set()
-    for table in ("decks", "podcasts", "mindmaps"):
+    for table in ("decks", "podcasts", "mindmaps", "quizzes", "flashcards"):
         for row in conn.execute(
             f"SELECT id,source_scope_json,understanding_json,knowledge_snapshot_json FROM {table}"
         ):

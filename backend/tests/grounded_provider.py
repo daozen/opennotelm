@@ -5,6 +5,7 @@ import json
 from deck_provider import deck_completion
 from mindmap_provider import mindmap_completion
 from podcast_provider import podcast_completion
+from study_provider import study_completion
 from vision_factory import vision_completion
 
 
@@ -17,6 +18,9 @@ def embedding(text: str) -> list[float]:
 
 
 def completion(payload: dict) -> str:
+    study = study_completion(payload)
+    if study is not None:
+        return study
     mindmap = mindmap_completion(payload)
     if mindmap is not None:
         return mindmap

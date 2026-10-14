@@ -13,6 +13,10 @@ it('round trips document locations, library selection and scoped chat without so
     '/notebooks/book/sources/source?node=page2&block=glyph',
     '/notebooks/book/knowledge/note?tab=sources',
     '/notebooks/book/decks/deck?slide=slide2',
+    '/notebooks/book/quizzes/quiz?item=Q2',
+    '/notebooks/book/flashcards/cards?item=F2',
+    '/notebooks/book/artifacts?type=quiz',
+    '/notebooks/book/artifacts?type=flashcards',
   ]) {
     const route = parseRoute(new URL(path, window.location.origin));
     expect(routeUrl(route)).toBe(path);

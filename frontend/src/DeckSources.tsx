@@ -1,3 +1,4 @@
+import { artifactPath } from './ArtifactDeleteDialog';
 import { useState } from 'react';
 import { api, type DeckSources as Sources } from './api';
 import { t, useI18n } from './i18n';
@@ -9,7 +10,7 @@ export default function DeckSources({
   onOpenKnowledge,
 }: {
   id: string;
-  kind?: 'deck' | 'podcast' | 'mindmap';
+  kind?: 'deck' | 'podcast' | 'mindmap' | 'quiz' | 'flashcards';
   onOpenSource: (sourceId: string, blockId: string) => Promise<void>;
   onOpenKnowledge?: (pageId: string) => void;
 }) {
@@ -29,11 +30,7 @@ export default function DeckSources({
     setLoading(true);
     setError('');
     try {
-      setSources(
-        await api<Sources>(
-          `/${kind === 'podcast' ? 'podcasts' : kind === 'mindmap' ? 'mindmaps' : 'decks'}/${id}/sources`,
-        ),
-      );
+      setSources(await api<Sources>(`/${artifactPath(kind)}/${id}/sources`));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -51,9 +48,11 @@ export default function DeckSources({
         {t(
           kind === 'podcast'
             ? '查看节目来源'
-            : kind === 'mindmap'
-              ? '查看导图来源'
-              : '查看 Deck 来源',
+            : kind === 'quiz' || kind === 'flashcards'
+              ? '查看资料来源'
+              : kind === 'mindmap'
+                ? '查看导图来源'
+                : '查看 Deck 来源',
         )}
       </summary>
       {loading && <p role="status">{t('加载中…')}</p>}

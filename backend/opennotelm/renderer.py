@@ -5,11 +5,13 @@ import html
 import json
 import re
 import sys
+from functools import wraps
 from io import BytesIO
 from pathlib import Path
 
 from PIL import Image
 from playwright.async_api import Error as BrowserError
+from playwright.async_api import TimeoutError as BrowserTimeout
 from playwright.async_api import async_playwright
 
 from .errors import AppError
@@ -30,6 +32,37 @@ RENDERER_VERSION = "chromium-page-v6"
 SERVER_BROWSER_ARGS = (
     ["--disable-gpu", "--disable-software-rasterizer"] if sys.platform == "linux" else []
 )
+
+
+def recover_transient_browser(operation):
+    """Retry once with a fresh browser, without repeating model/design requests."""
+
+    @wraps(operation)
+    async def run(*args, **kwargs):
+        try:
+            return await operation(*args, **kwargs)
+        except AppError as error:
+            cause = error.__cause__
+            transient = isinstance(cause, BrowserTimeout) or (
+                isinstance(cause, BrowserError)
+                and any(
+                    marker in str(cause).lower()
+                    for marker in (
+                        "target page, context or browser has been closed",
+                        "page crashed",
+                        "browser has been closed",
+                        "browser closed",
+                        "browser crashed",
+                    )
+                )
+            )
+            if error.code != "RENDER_BROWSER_FAILED" or not transient:
+                raise
+        # The operation's finally blocks have joined and closed the old browser.
+        # Cancellation is BaseException and is never caught here.
+        return await operation(*args, **kwargs)
+
+    return run
 
 
 def painted_contrast_feedback(render, text_layer, background):
@@ -332,6 +365,7 @@ class PageRenderer:
     def __init__(self, settings):
         self.settings = settings
 
+    @recover_transient_browser
     async def preflight(self, render, fragments, style):
         buffer = BytesIO()
         Image.new("RGBA", (8, 8), (0, 0, 0, 0)).save(buffer, format="PNG")
@@ -370,6 +404,7 @@ class PageRenderer:
                 502,
             ) from exc
 
+    @recover_transient_browser
     async def render(self, render, fragments, style, assets, directory: Path):
         document = fragment_html(render, fragments, style, assets)
         directory.mkdir(parents=True, exist_ok=True)

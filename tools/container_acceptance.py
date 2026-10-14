@@ -26,7 +26,10 @@ with sqlite3.connect(root / 'app.db') as db:
     assert active.fetchone()[0] == 0
 assert os.getuid() == 10001
 files = {}
-for folder in ('sources', 'assets', 'renders', 'exports', 'podcasts', 'mindmaps', 'secrets'):
+for folder in (
+    'sources', 'assets', 'renders', 'exports', 'podcasts', 'mindmaps',
+    'quizzes', 'flashcards', 'secrets'
+):
     for path in sorted((root / folder).rglob('*')):
         if path.is_file():
             files[str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -123,6 +126,7 @@ def snapshots(
     stopped_id=None,
     podcast_id=None,
     mindmap_id=None,
+    study_ids=(),
 ):
     paths = [
         "/settings/models",
@@ -177,6 +181,20 @@ def snapshots(
             values[f"/citations/{citation_id}"] = citation
         downloads["mindmap-markdown:" + mindmap_id] = f"/api/mindmaps/{mindmap_id}/download"
         downloads["mindmap-json:" + mindmap_id] = f"/api/mindmaps/{mindmap_id}/download?format=json"
+    for resource, identity in study_ids:
+        path = f"/{resource}/{identity}"
+        study = request(path)
+        assert study["status"] == "completed" and study["download_available"]
+        assert len(study["content"]["items"]) == 5 and study["progress"]["revision"] == 1
+        assert study["progress"]["responses"]
+        values[path] = study
+        values[path + "/sources"] = request(path + "/sources")
+        for citation_id in study["citations"].values():
+            citation = request(f"/citations/{citation_id}")
+            assert citation["available"]
+            values[f"/citations/{citation_id}"] = citation
+        downloads[resource + "-markdown:" + identity] = "/api" + path + "/download"
+        downloads[resource + "-json:" + identity] = "/api" + path + "/download?format=json"
     for deck in decks:
         downloads["pdf:" + deck["id"]] = deck["pdf_export"]["download_url"]
         for slide in deck["slides"]:
@@ -300,6 +318,17 @@ def prepare(state_path):
         {"scope": {"kind": "source", "source_id": source_ids[3]}, "language": "en"},
     )
     wait_job(mindmap["job"])
+    study_ids = []
+    for resource, choice in (("quizzes", "A"), ("flashcards", "known")):
+        study = request(
+            f"/notebooks/{notebook_id}/{resource}",
+            {"scope": {"kind": "source", "source_id": source_ids[3]}, "count": 5, "language": "en"},
+        )
+        wait_job(study["job"])
+        path = f"/{resource}/{study['id']}"
+        first = request(path)["content"]["items"][0]
+        request(path + "/responses", {"item_id": first["id"], "choice": choice, "revision": 0})
+        study_ids.append((resource, study["id"]))
     values, downloads, hashes = snapshots(
         notebook_id,
         source_ids,
@@ -309,6 +338,7 @@ def prepare(state_path):
         stopped["id"],
         podcast["id"],
         mindmap["id"],
+        study_ids,
     )
     pdf = request(after["pdf_export"]["download_url"].removeprefix("/api"))
     assert pdf.startswith(b"%PDF-")
@@ -327,6 +357,7 @@ def prepare(state_path):
                 stopped_deck_id=stopped["id"],
                 podcast_id=podcast["id"],
                 mindmap_id=mindmap["id"],
+                study_ids=study_ids,
                 snapshots=values,
                 downloads=downloads,
                 hashes=hashes,
@@ -346,6 +377,7 @@ def prepare(state_path):
                 "batch_decks": 2,
                 "stopped_decks": 1,
                 "mindmaps": 1,
+                "study_artifacts": 2,
                 "snapshots": len(values),
             }
         )
@@ -366,6 +398,7 @@ def verify(state_path):
         state.get("stopped_deck_id"),
         state.get("podcast_id"),
         state.get("mindmap_id"),
+        state.get("study_ids", []),
     )
     assert values == state["snapshots"], "API state changed after recreation"
     assert downloads == state["downloads"]

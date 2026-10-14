@@ -68,3 +68,5 @@ docs/PUBLICATION_PRIVACY.md export-ignore
 
 docs/decisions/041-mindmaps-and-artifact-studio.md export-ignore
 docs/decisions/042-reduced-container-audio-runtime.md export-ignore
+docs/decisions/043-quiz-and-flashcards.md export-ignore
+docs/decisions/044-reproducible-expat-and-browser-recovery.md export-ignore

@@ -65,18 +65,46 @@ def markdown(tree):
 
 
 class MindMapService:
+    # Application-owned constants only; never derive SQL identifiers from requests.
+    table = "mindmaps"
+    batch_table = "mindmap_batches"
+    kind = "mindmap"
+    Input = MindMapInput
+    Output = MindMapTree
+    count_path = "$.nodes"
+    default_title = "Mind map"
+    error_prefix = "MINDMAP"
+    writing_stage = "mindmap_mapping"
+
+    def policy(self, value):
+        return MAP_POLICY
+
+    def validate_result(self, result, allowed, understanding, primary, value):
+        validate_tree(
+            result,
+            allowed,
+            source_only=understanding["intent"].get("source_only", False),
+            primary=primary,
+        )
+
+    def evidence_references(self, tree):
+        return [ref for node in tree["nodes"] for ref in node["evidence_ids"]]
+
+    def export_text(self, tree):
+        return markdown(tree)
+
     def __init__(self, db, jobs, models, knowledge, citations, settings, shared_work_context):
         self.db, self.jobs, self.models = db, jobs, models
         self.knowledge, self.citations, self.settings = knowledge, citations, settings
         self.shared_work_context = shared_work_context
         self.content_budget = knowledge.synthesis.content_budget
-        jobs.handlers["mindmap_generate"] = self.generate
+        jobs.handlers[self.kind + "_generate"] = self.generate
 
     def record(self, identity):
         with self.db.connect() as conn:
-            row = conn.execute("SELECT * FROM mindmaps WHERE id=?", (identity,)).fetchone()
+            row = conn.execute(f"SELECT * FROM {self.table} WHERE id=?", (identity,)).fetchone()
         if not row:
-            raise AppError("MINDMAP_NOT_FOUND", "This mind map no longer exists.", 404)
+            raise AppError(self.error_prefix + "_NOT_FOUND", "This artifact no longer exists.", 404)
         value = dict(row)
         for key in (
             "input",
@@ -104,7 +132,7 @@ class MindMapService:
             value["citations"] = {
                 r["evidence_id"]: r["id"]
                 for r in conn.execute(
-                    "SELECT id,evidence_id FROM citations WHERE owner_type='mindmap' "
+                    f"SELECT id,evidence_id FROM citations WHERE owner_type='{self.kind}' "
                     "AND owner_id=?",
                     (identity,),
                 )
@@ -120,8 +148,8 @@ class MindMapService:
         with self.db.connect() as conn:
             records = conn.execute(
                 "SELECT id,notebook_id,title,status,input_json,created_at,"
-                "coalesce(json_array_length(tree_json,'$.nodes'),0) AS node_count "
-                "FROM mindmaps WHERE notebook_id=? ORDER BY created_at DESC,rowid DESC",
+                f"coalesce(json_array_length(tree_json,'{self.count_path}'),0) AS node_count "
+                f"FROM {self.table} WHERE notebook_id=? ORDER BY created_at DESC,rowid DESC",
                 (notebook_id,),
             ).fetchall()
             result = []
@@ -149,10 +177,14 @@ class MindMapService:
         manifest = deck_sources.capture(
             conn, scope, knowledge, node_provider=self.knowledge.retrieval.sources.nodes
         )
-        title = deck_sources.source_title(manifest) if data.title_mode == "source" else "Mind map"
+        title = (
+            deck_sources.source_title(manifest)
+            if data.title_mode == "source"
+            else self.default_title
+        )
         conn.execute(
             "INSERT INTO "
-            "mindmaps(id,notebook_id,title,input_json,source_scope_json,k"
+            f"{self.table}(id,notebook_id,title,input_json,source_scope_json,k"
             "nowledge_snapshot_json,source_manifest_json,settings_json,cr"
             "eated_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
             (
@@ -170,16 +202,16 @@ class MindMapService:
         )
         self.jobs.enqueue_in_transaction(
             conn,
-            "mindmap_generate",
+            self.kind + "_generate",
             identity,
-            {"mindmap_id": identity, "notebook_id": notebook_id, "scope": scope},
+            {self.kind + "_id": identity, "notebook_id": notebook_id, "scope": scope},
         )
         conn.execute("UPDATE notebooks SET updated_at=? WHERE id=?", (timestamp, notebook_id))
         return identity
 
     def creation_settings(self):
         return {
-            "version": "mindmap-v1",
+            "version": self.kind + "-v1",
             "language": snapshot(self.models, "language"),
             "content_concurrency": ContentGenerationSettingsService(self.db, self.settings).get()[
                 "concurrency"
@@ -199,18 +231,18 @@ class MindMapService:
         with self.db.connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
             existing = conn.execute(
-                "SELECT * FROM mindmap_batches WHERE notebook_id=? AND request_key=?",
+                f"SELECT * FROM {self.batch_table} WHERE notebook_id=? AND request_key=?",
                 (notebook_id, data.request_key),
             ).fetchone()
             if existing:
                 ids = json.loads(existing["ids_json"])
                 if existing["input_hash"] != signature or any(
-                    not conn.execute("SELECT 1 FROM mindmaps WHERE id=?", (i,)).fetchone()
+                    not conn.execute(f"SELECT 1 FROM {self.table} WHERE id=?", (i,)).fetchone()
                     for i in ids
                 ):
                     raise AppError(
-                        "MINDMAP_BATCH_CONFLICT",
-                        "This batch changed or contains deleted mind maps. Start a new batch.",
+                        self.error_prefix + "_BATCH_CONFLICT",
+                        "This batch changed or contains deleted artifacts. Start a new batch.",
                         409,
                     )
             else:
@@ -229,23 +261,25 @@ class MindMapService:
                     scopes = [scope]
                 if not scopes or len(scopes) > 100:
                     raise AppError(
-                        "MINDMAP_BATCH_LIMIT", "Select between 1 and 100 mind maps per batch."
+                        self.error_prefix + "_BATCH_LIMIT",
+                        "Select between 1 and 100 artifacts per batch.",
                     )
                 ids = [
-                    self._insert(conn, notebook_id, MindMapInput(**request), s, knowledge, saved)
+                    self._insert(conn, notebook_id, self.Input(**request), s, knowledge, saved)
                     for s in scopes
                 ]
                 conn.execute(
-                    "INSERT INTO mindmap_batches VALUES (?,?,?,?)",
+                    f"INSERT INTO {self.batch_table} VALUES (?,?,?,?)",
                     (notebook_id, data.request_key, signature, json.dumps(ids)),
                 )
-        return {"mindmaps": [self.get(i) for i in ids]}
+        return {self.table: [self.get(i) for i in ids]}
 
     def stage(self, identity, context, stage, progress):
         context.progress(stage, progress)
         with self.db.connect() as conn:
             conn.execute(
-                "UPDATE mindmaps SET status=?,updated_at=? WHERE id=?", (stage, now(), identity)
+                f"UPDATE {self.table} SET status=?,updated_at=? WHERE id=?",
+                (stage, now(), identity),
             )
 
     async def pause(self, identity):
@@ -253,7 +287,8 @@ class MindMapService:
         if await self.jobs.cancel_entity(identity):
             with self.db.connect() as conn:
                 conn.execute(
-                    "UPDATE mindmaps SET status='paused',updated_at=? WHERE id=?", (now(), identity)
+                    f"UPDATE {self.table} SET status='paused',updated_at=? WHERE id=?",
+                    (now(), identity),
                 )
         return self.get(identity)
 
@@ -262,38 +297,70 @@ class MindMapService:
         if value["job"] and value["job"]["status"] in ("queued", "running"):
             return value
         if not value["job"] or value["job"]["status"] not in ("failed", "cancelled"):
-            raise AppError("MINDMAP_NOT_RESUMABLE", "This mind map has no unfinished task.", 409)
+            raise AppError(
+                self.error_prefix + "_NOT_RESUMABLE", "This artifact has no unfinished task.", 409
+            )
         self.jobs.retry(value["job"]["id"])
         with self.db.connect() as conn:
             conn.execute(
-                "UPDATE mindmaps SET status='queued',updated_at=? WHERE id=?", (now(), identity)
+                f"UPDATE {self.table} SET status='queued',updated_at=? WHERE id=?",
+                (now(), identity),
             )
         return self.get(identity)
 
     async def delete(self, identity):
         await self.jobs.cancel_entity(identity)
         with self.db.connect() as conn:
-            conn.execute("DELETE FROM mindmaps WHERE id=?", (identity,))
+            conn.execute(f"DELETE FROM {self.table} WHERE id=?", (identity,))
 
     def rename(self, identity, title):
         value = self.get(identity)
         if value["job"] and value["job"]["status"] in ("queued", "running"):
-            raise AppError("MINDMAP_BUSY", "Stop generation before renaming this mind map.", 409)
+            raise AppError(
+                self.error_prefix + "_BUSY", "Stop generation before renaming this artifact.", 409
+            )
         with self.db.connect() as conn:
             conn.execute(
-                "UPDATE mindmaps SET title=?,updated_at=? WHERE id=?", (title, now(), identity)
+                f"UPDATE {self.table} SET title=?,updated_at=? WHERE id=?", (title, now(), identity)
             )
         return self.get(identity)
 
+    async def author(self, value, models, understanding, packets, primary, context):
+        def check(result):
+            self.validate_result(result, {e["id"] for e in packets}, understanding, primary, value)
+
+        async with self.content_budget.slot(value["settings"]["content_concurrency"]):
+            result = await structured_completion(
+                models,
+                self.policy(value) + "\n" + output_instruction(value["input"]["language"]),
+                {
+                    "user_instruction": value["input"]["instruction"],
+                    "preferences": understanding["intent"],
+                    "requested_count": value["input"].get("count"),
+                    "difficulty": value["input"].get("difficulty"),
+                    "reading_dossier": understanding["content"],
+                    "work_context": understanding["work_context"],
+                    "registered_evidence": [
+                        {"id": e["id"], "text": e["text"][:200]} for e in packets
+                    ],
+                },
+                self.Output,
+                validate=check,
+                output_limit=12000,
+                error_code=self.error_prefix + "_OUTPUT_INVALID",
+                repair_format="full",
+            )
+        return result.model_dump()
+
     async def generate(self, payload, context):
-        value = self.record(payload["mindmap_id"])
-        models = FrozenModels(self.models, value["settings"], "MINDMAP_MODEL_CHANGED")
+        value = self.record(payload[self.kind + "_id"])
+        models = FrozenModels(self.models, value["settings"], self.error_prefix + "_MODEL_CHANGED")
         token = CONTENT_CONCURRENCY.set(value["settings"]["content_concurrency"])
         try:
             understanding = await self.understand(value, models, context)
             tree = value["tree"]
             if not tree:
-                self.stage(value["id"], context, "mindmap_mapping", 0.5)
+                self.stage(value["id"], context, self.writing_stage, 0.5)
                 cited = set(CITATION_PATTERN.findall(understanding["content"])) | set(
                     understanding.get("work_context", {}).get("evidence_ids", [])
                 )
@@ -302,41 +369,14 @@ class MindMapService:
                     understanding.get("work_context", {}).get("evidence_ids", [])
                 )
 
-                def check(result):
-                    validate_tree(
-                        result,
-                        {e["id"] for e in packets},
-                        source_only=understanding["intent"].get("source_only", False),
-                        primary=primary,
-                    )
-
-                async with self.content_budget.slot(value["settings"]["content_concurrency"]):
-                    result = await structured_completion(
-                        models,
-                        MAP_POLICY + "\n" + output_instruction(value["input"]["language"]),
-                        {
-                            "user_instruction": value["input"]["instruction"],
-                            "preferences": understanding["intent"],
-                            "reading_dossier": understanding["content"],
-                            "work_context": understanding["work_context"],
-                            "registered_evidence": [
-                                {"id": e["id"], "text": e["text"][:200]} for e in packets
-                            ],
-                        },
-                        MindMapTree,
-                        validate=check,
-                        output_limit=12000,
-                        error_code="MINDMAP_OUTPUT_INVALID",
-                        repair_format="full",
-                    )
-                tree = result.model_dump()
-                markers = " ".join(f"[[{ref}]]" for n in tree["nodes"] for ref in n["evidence_ids"])
+                tree = await self.author(value, models, understanding, packets, primary, context)
+                markers = " ".join(f"[[{ref}]]" for ref in self.evidence_references(tree))
                 with self.db.connect() as conn:
                     self.citations.persist(
-                        conn, value["notebook_id"], "mindmap", value["id"], markers, packets
+                        conn, value["notebook_id"], self.kind, value["id"], markers, packets
                     )
                     conn.execute(
-                        "UPDATE mindmaps SET tree_json=?,title=? WHERE id=?",
+                        f"UPDATE {self.table} SET tree_json=?,title=? WHERE id=?",
                         (
                             json.dumps(tree),
                             tree["title"]
@@ -345,10 +385,10 @@ class MindMapService:
                             value["id"],
                         ),
                     )
-            self.stage(value["id"], context, "mindmap_exporting", 0.95)
-            raw = markdown(tree).encode()
+            self.stage(value["id"], context, self.kind + "_exporting", 0.95)
+            raw = self.export_text(tree).encode()
             checksum = hashlib.sha256(raw).hexdigest()
-            directory = self.settings.data_dir / "mindmaps" / value["id"]
+            directory = self.settings.data_dir / self.table / value["id"]
             directory.mkdir(parents=True, exist_ok=True)
             path = directory / (checksum + ".md")
             temporary = directory / "export.tmp"
@@ -357,13 +397,14 @@ class MindMapService:
             saved = {"file_uri": str(path.relative_to(self.settings.data_dir)), "sha256": checksum}
             with self.db.connect() as conn:
                 conn.execute(
-                    "UPDATE mindmaps SET export_json=?,status='completed',updated_at=? WHERE id=?",
+                    f"UPDATE {self.table} SET export_json=?,status='completed',updated_at=? "
+                    "WHERE id=?",
                     (json.dumps(saved), now(), value["id"]),
                 )
-            return {"mindmap_id": value["id"]}
+            return {self.kind + "_id": value["id"]}
         except Exception:
             with self.db.connect() as conn:
-                conn.execute("UPDATE mindmaps SET status='failed' WHERE id=?", (value["id"],))
+                conn.execute(f"UPDATE {self.table} SET status='failed' WHERE id=?", (value["id"],))
             raise
         finally:
             CONTENT_CONCURRENCY.reset(token)
@@ -372,13 +413,17 @@ class MindMapService:
         value = self.record(identity)
         saved = value["export"]
         if not saved:
-            raise AppError("ARTIFACT_NOT_READY", "Complete this mind map before downloading.", 409)
-        root = (self.settings.data_dir / "mindmaps" / identity).resolve()
+            raise AppError("ARTIFACT_NOT_READY", "Complete this artifact before downloading.", 409)
+        root = (self.settings.data_dir / self.table / identity).resolve()
         path = (self.settings.data_dir / saved["file_uri"]).resolve()
         if not path.is_relative_to(root) or not path.is_file():
-            raise AppError("MINDMAP_FILE_MISSING", "The saved mind map file is missing.", 404)
+            raise AppError(
+                self.error_prefix + "_FILE_MISSING", "The saved artifact file is missing.", 404
+            )
         if hashlib.sha256(path.read_bytes()).hexdigest() != saved["sha256"]:
-            raise AppError("MINDMAP_FILE_MISSING", "The saved mind map file is unavailable.", 409)
+            raise AppError(
+                self.error_prefix + "_FILE_MISSING", "The saved artifact file is unavailable.", 409
+            )
         return path
 
     def download_name(self, identity):
@@ -404,8 +449,8 @@ class MindMapService:
     async def understand(self, episode, models, context):
         if episode["understanding"]:
             return episode["understanding"]
-        data = MindMapInput(**episode["input"])
-        self.stage(episode["id"], context, "mindmap_reading", 0.02)
+        data = self.Input(**episode["input"])
+        self.stage(episode["id"], context, self.kind + "_reading", 0.02)
         intent = (
             ReadingIntent()
             if not data.instruction.strip()
@@ -420,7 +465,7 @@ class MindMapService:
                 {"user_instruction": data.instruction},
                 ReadingIntent,
                 output_limit=256,
-                error_code="MINDMAP_OUTPUT_INVALID",
+                error_code=self.error_prefix + "_OUTPUT_INVALID",
             )
         )
         synthesis = SynthesisService(self.db, models, self.knowledge.synthesis.visuals)
@@ -463,13 +508,13 @@ class MindMapService:
             parent, background, _ = await work.build(
                 episode,
                 blocks,
-                context.substage("mindmap_reading", 0.02, 0.12),
+                context.substage(self.kind + "_reading", 0.02, 0.12),
                 chapter_only=intent.chapter_only,
             )
             content, packets, metadata = await synthesis.run(
                 blocks,
-                context.substage("mindmap_reading", 0.12, 0.25),
-                purpose="mindmap",
+                context.substage(self.kind + "_reading", 0.12, 0.25),
+                purpose=self.kind,
                 instruction=data.instruction,
                 preferences=intent.model_dump(),
                 work_context=parent,
@@ -484,7 +529,7 @@ class MindMapService:
             }
         with self.db.connect() as conn:
             conn.execute(
-                "UPDATE mindmaps SET understanding_json=? WHERE id=?",
+                f"UPDATE {self.table} SET understanding_json=? WHERE id=?",
                 (json.dumps(understanding), episode["id"]),
             )
         return understanding

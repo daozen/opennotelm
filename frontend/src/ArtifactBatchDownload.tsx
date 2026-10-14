@@ -5,7 +5,7 @@ import { t, useI18n } from './i18n';
 
 export type DownloadableArtifact = {
   id: string;
-  kind: 'deck' | 'podcast' | 'mindmap';
+  kind: 'deck' | 'podcast' | 'mindmap' | 'quiz' | 'flashcards';
   title: string;
   download_available?: boolean;
 };
