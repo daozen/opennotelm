@@ -12,6 +12,7 @@ import tomllib
 import urllib.request
 from pathlib import Path
 
+from install_debian_security import validate_debian_url, verified_download
 from python_notices import collect
 from release_check import check, validate_tag
 
@@ -112,14 +113,18 @@ def build(root: Path, output: Path, tag: str) -> list[Path]:
         debian = json.loads((root / "tools/debian_security_packages.json").read_text())
         for name, entry in debian["packages"].items():
             for source_entry in entry["sources"]:
-                if not source_entry["url"].startswith("https://deb.debian.org/debian/pool/main/"):
-                    raise ValueError("Unexpected Debian security source host")
+                validate_debian_url(source_entry["url"])
                 upstreams.append(
                     ("debian-" + name, source_entry["url"], "sha256:" + source_entry["sha256"])
                 )
         for name, url, expected_hash in upstreams:
-            with urllib.request.urlopen(url, timeout=60) as response:
-                data = response.read(30 * 1024 * 1024 + 1)
+            if name.startswith("debian-"):
+                data = verified_download(
+                    {"url": url, "sha256": expected_hash.removeprefix("sha256:")}
+                )
+            else:
+                with urllib.request.urlopen(url, timeout=60) as response:
+                    data = response.read(30 * 1024 * 1024 + 1)
             if len(data) > 30 * 1024 * 1024:
                 raise ValueError("Upstream source exceeds the download limit")
             if "sha256:" + hashlib.sha256(data).hexdigest() != expected_hash:

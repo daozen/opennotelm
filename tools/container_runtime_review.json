@@ -1,5 +1,5 @@
 {
-  "reviewed": "2026-10-12",
+  "reviewed": "2026-10-14",
   "expires": "2026-11-04",
   "scope": "Default non-root Debian 13 server image and Compose settings with the verified reduced FFmpeg audio build only; no privileged/root runtime, extra devices, displays, source mounts, customized renderers or replacement audio binaries. Not a vendor package fix or a general OS security claim.",
   "runtime_sources": {
@@ -71,7 +71,7 @@
     "backend/opennotelm/reading.py": "c241aef5f233e50ab70144fd60541773c4098b401ad9a5ade54a1966fab6e5a9",
     "backend/opennotelm/render_routes.py": "8f52c0885ead2d45d1a411ac4fd63aaa344c67d5b677403758706466dd813f7b",
     "backend/opennotelm/render_schemas.py": "2f023d6d231d297720dd10b8f866d392545b8deb2532d7f5752febbb37cfba8c",
-    "backend/opennotelm/renderer.py": "85e6c0b805363b501fbe7a8caf0141502c5f2bb9f9fda539d1ea8641ae953668",
+    "backend/opennotelm/renderer.py": "d025a436d4115aeb5a1a3bfbaa27afb4743ca094c3ed5124e33028afe6f8c0df",
     "backend/opennotelm/request_limits.py": "fe7b495dd84a789061fb71bf7075e4d92b236d1821f9cb5cc9c74bc3bfd83a5c",
     "backend/opennotelm/retrieval.py": "92d2e70ab9197b3afde0fe4a0e3520c7ff196989d7388182affd4923538428e2",
     "backend/opennotelm/revision_schemas.py": "b10c3e447df1921813db592c7283440de820209bffa5f38a30f16435d2ffe85e",
@@ -363,6 +363,8 @@
     "tools/check_audio_runtime.py": "551664defa212b0e7df01c2a48a9e2db6e32eb71318abc61099a65f18927824e",
     "tools/check_xml_runtime.py": "bc113035fa694adcd43c3bffe79dc135b4cf70659fb6c795358934d0bde74f9d",
     "tools/probe_security_runtime.py": "ce28d3ebd9f4e349ebaa721d07fc3c613f82199615c3077d0ae7fb31f2258fa9",
-    "licenses/native-audio/source.json": "ac83424bdb59ef14df9fabfab79a91742a8b8c86d925a2a844b322e4ccf50423"
+    "licenses/native-audio/source.json": "ac83424bdb59ef14df9fabfab79a91742a8b8c86d925a2a844b322e4ccf50423",
+    "tools/install_debian_security.py": "1e740a948fecaa0e8a6074f7c540be343674d35444563b3590040fbc5a07830f",
+    "tools/debian_security_packages.json": "092b6e8d04751a6c12d1047a15ff11fde7b6e373ac924a9abc7807c965f77ccc"
   }
 }

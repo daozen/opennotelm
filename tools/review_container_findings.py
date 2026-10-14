@@ -1,4 +1,4 @@
-"""Retain raw findings; recognize only five independently verified vendor fixes."""
+"""Retain raw findings; recognize only exact independently verified vendor fixes."""
 
 from __future__ import annotations
 
@@ -10,14 +10,15 @@ import json
 from pathlib import Path
 
 EXPIRES = dt.date(2026, 11, 4)
-# The October 5 (Asia/Shanghai) review started on October 4 UTC.
-REVIEWED = dt.date(2026, 10, 4)
+# Exact Expat 2.9.0 fixes were reassessed on October 14; expiry is unchanged.
+REVIEWED = dt.date(2026, 10, 14)
 FIXED = {
     "CVE-2026-54369": ("libacl1", "2.4.0-1"),
-    "CVE-2026-66046": ("libexpat1", "2.8.5-2"),
-    "CVE-2026-76956": ("libexpat1", "2.8.5-2"),
-    "CVE-2026-76957": ("libexpat1", "2.8.5-2"),
-    "CVE-2026-93990": ("libexpat1", "2.8.5-2"),
+    "CVE-2026-66046": ("libexpat1", "2.9.0-1"),
+    "CVE-2026-76956": ("libexpat1", "2.9.0-1"),
+    "CVE-2026-76957": ("libexpat1", "2.9.0-1"),
+    "CVE-2026-93990": ("libexpat1", "2.9.0-1"),
+    "CVE-2026-77214": ("libexpat1", "2.9.0-1"),
 }
 
 
@@ -118,4 +119,5 @@ if __name__ == "__main__":
     remaining = collections.Counter(row["severity"] for row in report["unresolved"])
     print("Unresolved high/critical records:", dict(sorted(remaining.items())))
     if report["unresolved"]:
+        print("Unresolved records:", json.dumps(report["unresolved"], sort_keys=True))
         raise SystemExit("Review and resolve remaining high/critical findings before publishing.")

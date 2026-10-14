@@ -9,7 +9,7 @@ and runtime-applicability evidence. **This is not a claim that every installed O
 library is patched or universally unaffected.**
 
 The build recompiles locked lxml against SHA-256-pinned libxml2 **2.15.4** and
-libxslt **1.1.45**. System Expat **2.8.5-2** and ACL **2.4.0-1** use verified official
+libxslt **1.1.45**. System Expat **2.9.0-1** and ACL **2.4.0-1** use verified official
 Debian packages for both release architectures. Original sources, package files and
 copyright notices accompany the distribution. Native `uv sync` uses upstream wheels
 and does not receive the Docker-specific replacement.
@@ -40,7 +40,7 @@ CPU 渲染。安全门禁结合原始扫描、准确厂商修复和实际运行�
 修复或在任意配置下都不受影响**。
 
 镜像以固定哈希的 libxml2 **2.15.4**、libxslt **1.1.45** 重编译锁定 lxml；系统 Expat
-**2.8.5-2** 和 ACL **2.4.0-1** 采用双架构已核对的官方 Debian 包，保留对应源码、打包
+**2.9.0-1** 和 ACL **2.4.0-1** 采用双架构已核对的官方 Debian 包，保留对应源码、打包
 文件和版权声明。原生 `uv sync` 使用上游 wheel，不获得这项 Docker 专用替换。
 
 检查实际二进制、文件校验值、加载版本、权限及受影响组件是否存在；Linux 使用 CPU
@@ -68,3 +68,9 @@ MP3、FLAC、Ogg Vorbis/Opus、内部 WAV 合并与 MP3 导出。运行探针拒
 解码器或链接库，SBOM 记录准确二进制和来源；发布附件保留原始源码及 LGPL 声明。
 这是受限音频构建，不等同通用系统 FFmpeg，也不保证所有上游漏洞均已修复；新漏洞或
 代码/配置变化仍需复核。原生安装继续使用用户自行安装的 FFmpeg。
+
+
+Pinned Expat packages and complete sources use the official dated Debian snapshot, with
+SHA-256 and package/runtime identity checks. Expat 2.9.0-1 fixes
+[CVE-2026-77214](https://security-tracker.debian.org/tracker/CVE-2026-77214).
+固定 Expat 包和完整源码来自 Debian 官方定时快照，保留 SHA-256、包及实际加载版本校验。
