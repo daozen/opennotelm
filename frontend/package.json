@@ -19,7 +19,7 @@
     "format:check": "prettier --check src e2e *.ts *.json *.html"
   },
   "dependencies": {
-    "i18next": "^26.4.2",
+    "i18next": "^26.4.5",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
