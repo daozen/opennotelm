@@ -8,7 +8,7 @@ COPY tools/npm_notices.mjs /build/tools/npm_notices.mjs
 RUN node /build/tools/npm_notices.mjs /build/frontend /build/frontend/dist/third-party
 
 FROM ghcr.io/astral-sh/uv:0.12.6 AS uv
-FROM python:3.12-slim-trixie AS xml-builder
+FROM python:3.15-slim-trixie AS xml-builder
 WORKDIR /build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential cmake pkg-config zlib1g-dev && rm -rf /var/lib/apt/lists/*
@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libmp3lame-dev 
 COPY tools/native_audio_source.json tools/fetch_audio_source.py tools/build_audio_runtime.sh ./tools/
 RUN bash tools/build_audio_runtime.sh
 
-FROM python:3.12-slim-trixie AS runtime
+FROM python:3.15-slim-trixie AS runtime
 COPY --from=uv /uv /usr/local/bin/uv
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 DATA_DIR=/app/data FRONTEND_DIR=/app/frontend/dist UV_CACHE_DIR=/tmp/uv-cache PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
